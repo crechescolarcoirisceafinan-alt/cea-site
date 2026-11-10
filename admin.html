@@ -110,6 +110,9 @@ textarea{min-height:96px;resize:vertical}
 .foto.escondida img{opacity:.4}
 .foto .in{padding:12px;display:flex;flex-direction:column;gap:10px}
 .foto .linha{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.logo-previa{background:#FFFFFF;aspect-ratio:16/9;display:grid;place-items:center;padding:14px;border-bottom:1px solid var(--linha)}
+.logo-previa img{max-width:100%;max-height:100%;object-fit:contain;aspect-ratio:auto}
+.logo-item.escondida .logo-previa img{opacity:.4}
 .vazio{color:var(--suave);text-align:center;padding:24px}
 
 /* Barra de salvar */
@@ -261,6 +264,9 @@ const ABAS = [
     { k:"familias.intro", r:"Texto da seção Para as famílias", t:"textarea" }
   ]},
   { id:"fotos", nome:"Fotos", desc:"Fotos da galeria. Elas são reduzidas automaticamente antes de enviar. Só publique fotos de crianças com autorização de uso de imagem dos responsáveis." },
+  { id:"logos", nome:"Logos parceiros", desc:"Logos que aparecem no rodapé do site. Prefira imagens com fundo transparente (PNG). Elas são reduzidas automaticamente.", campos:[
+    { k:"logos.titulo", r:"Título da faixa de logos" }
+  ]},
   { id:"aviso", nome:"Aviso", desc:"Uma faixa no topo do site para recados importantes.", campos:[
     { k:"aviso.ativo", r:"Mostrar aviso no site", t:"check" },
     { k:"aviso.texto", r:"Texto do aviso" },
@@ -276,6 +282,7 @@ const ABAS = [
     { k:"secoes.familias", r:"Para as famílias", t:"check" },
     { k:"secoes.instagram", r:"Chamada do Instagram", t:"check" },
     { k:"secoes.contato", r:"Contato e mapa", t:"check" },
+    { k:"secoes.logos", r:"Logos dos parceiros no rodapé", t:"check" },
     { k:"cores.verde", r:"Cor principal", t:"cor" },
     { k:"cores.sol", r:"Cor de destaque", t:"cor" }
   ]}
@@ -357,6 +364,7 @@ function mostrar(id){
   p.innerHTML = `<h2>${esc(aba.nome)}</h2><p class="desc">${esc(aba.desc)}</p>`;
   if (id === "fotos") return montarFotos(p);
   aba.campos.forEach(c => p.appendChild(criarCampo(c, dados, c.k)));
+  if (id === "logos") montarLogos(p);
 }
 
 let seq = 0;
@@ -590,6 +598,105 @@ document.addEventListener("click", async e => {
     } catch(err){ aviso("Não foi possível mudar a ordem: " + err.message); }
   }
 });
+/* ---------- Logos dos parceiros ---------- */
+let logos = [];
+async function montarLogos(p){
+  p.insertAdjacentHTML("beforeend", `
+    <label class="soltar" id="soltar-logo">
+      <b>Adicionar logos</b>
+      <span>Toque para escolher ou arraste as imagens para cá. Pode escolher várias.</span>
+      <input type="file" accept="image/*" multiple class="oculto" id="arquivos-logo">
+    </label>
+    <div class="progresso oculto" id="progresso-logo" role="status" aria-live="polite"></div>
+    <div class="fotos" id="lista-logos"><p class="vazio">Carregando logos…</p></div>`);
+  const zona = $("#soltar-logo");
+  ["dragenter","dragover"].forEach(ev => zona.addEventListener(ev, e => { e.preventDefault(); zona.classList.add("sobre"); }));
+  ["dragleave","drop"].forEach(ev => zona.addEventListener(ev, e => { e.preventDefault(); zona.classList.remove("sobre"); }));
+  zona.addEventListener("drop", e => enviarLogos([...e.dataTransfer.files].filter(f => f.type.startsWith("image/"))));
+  $("#arquivos-logo").addEventListener("change", e => { enviarLogos([...e.target.files]); e.target.value = ""; });
+  try {
+    const snap = await db.collection(COL.logos).orderBy("ordem").get();
+    logos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch(e){ logos = []; aviso("Não consegui carregar as logos: " + (e.code === "permission-denied" ? "atualize as regras do Firestore" : e.message)); }
+  desenharLogos();
+}
+async function enviarLogos(arquivos){
+  if (!arquivos.length) return;
+  const prog = $("#progresso-logo"); prog.classList.remove("oculto");
+  let base = logos.length ? Math.max(...logos.map(l => l.ordem || 0)) + 1 : 1;
+  for (let i = 0; i < arquivos.length; i++) {
+    prog.textContent = `Enviando logo ${i + 1} de ${arquivos.length}…`;
+    try {
+      const img = await reduzir(arquivos[i], 400, "image/png", 0.92, 300000);
+      const nome = arquivos[i].name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ");
+      const ref = db.collection(COL.logos).doc();
+      const meta = { img, nome, link: "", ordem: base++, visivel: true, criadoEm: new Date().toISOString() };
+      await ref.set(meta);
+      logos.push({ id: ref.id, ...meta });
+      if (abaAtual === "logos") desenharLogos();
+    } catch(e) {
+      aviso(`Erro na logo ${arquivos[i].name}: ` + (e.code === "permission-denied" ? "sem permissão (atualize as regras do Firestore)" : e.message));
+    }
+  }
+  prog.textContent = "Logos enviadas. Agora coloque o nome e o link de cada parceiro.";
+  setTimeout(() => prog.classList.add("oculto"), 5000);
+}
+function desenharLogos(){
+  const box = $("#lista-logos"); if (!box) return;
+  if (!logos.length) { box.innerHTML = `<p class="vazio">Nenhuma logo ainda. A faixa aparece no rodapé assim que você enviar a primeira.</p>`; return; }
+  box.innerHTML = logos.map((l, i) => `
+    <div class="foto logo-item${l.visivel === false ? " escondida" : ""}" data-id="${l.id}">
+      <div class="logo-previa"><img src="${l.img}" alt="${esc(l.nome)}"></div>
+      <div class="in">
+        <input type="text" placeholder="Nome do parceiro" aria-label="Nome do parceiro ${i + 1}" value="${esc(l.nome)}" data-campo="nome">
+        <input type="text" inputmode="url" placeholder="Link do site (opcional) https://" aria-label="Link do parceiro ${i + 1}" value="${esc(l.link)}" data-campo="link">
+        <label class="check"><input type="checkbox" data-visivel-logo ${l.visivel !== false ? "checked" : ""}> Aparece no site</label>
+        <div class="linha">
+          <button class="btn btn-pequeno" type="button" data-ml="-1" ${i === 0 ? "disabled" : ""} aria-label="Mover para antes">←</button>
+          <button class="btn btn-pequeno" type="button" data-ml="1" ${i === logos.length - 1 ? "disabled" : ""} aria-label="Mover para depois">→</button>
+          <button class="btn btn-pequeno btn-perigo" type="button" data-xl style="margin-left:auto">Excluir</button>
+        </div>
+      </div>
+    </div>`).join("");
+}
+document.addEventListener("change", async e => {
+  const card = e.target.closest(".logo-item"); if (!card) return;
+  e.stopImmediatePropagation();
+  const l = logos.find(x => x.id === card.dataset.id);
+  try {
+    if (e.target.dataset.campo) {
+      const campo = e.target.dataset.campo; let v = e.target.value.trim();
+      if (campo === "link" && v && !/^https?:\/\//.test(v)) { v = "https://" + v; e.target.value = v; }
+      l[campo] = v; await db.collection(COL.logos).doc(l.id).update({ [campo]: v }); aviso("Salvo.");
+    }
+    if (e.target.matches("[data-visivel-logo]")) {
+      l.visivel = e.target.checked; await db.collection(COL.logos).doc(l.id).update({ visivel: l.visivel });
+      card.classList.toggle("escondida", !l.visivel); aviso(l.visivel ? "A logo voltou para o site." : "A logo foi escondida do site.");
+    }
+  } catch(err){ aviso("Não foi possível salvar: " + err.message); }
+}, true);
+document.addEventListener("click", async e => {
+  const card = e.target.closest(".logo-item"); if (!card) return;
+  e.stopImmediatePropagation();
+  const i = logos.findIndex(x => x.id === card.dataset.id), l = logos[i];
+  if (e.target.closest("[data-xl]")) {
+    if (!confirm(`Excluir a logo "${l.nome || "do parceiro"}"?`)) return;
+    try { await db.collection(COL.logos).doc(l.id).delete(); logos.splice(i, 1); desenharLogos(); aviso("Logo excluída."); }
+    catch(err){ aviso("Não foi possível excluir: " + err.message); }
+  }
+  const m = e.target.closest("[data-ml]");
+  if (m) {
+    const j = i + Number(m.dataset.ml), g = logos[j];
+    [l.ordem, g.ordem] = [g.ordem, l.ordem]; [logos[i], logos[j]] = [g, l];
+    desenharLogos();
+    try {
+      const lote = db.batch();
+      lote.update(db.collection(COL.logos).doc(l.id), { ordem: l.ordem });
+      lote.update(db.collection(COL.logos).doc(g.id), { ordem: g.ordem });
+      await lote.commit();
+    } catch(err){ aviso("Não foi possível mudar a ordem: " + err.message); }
+  }
+}, true);
 })();
 </script>
 </body>

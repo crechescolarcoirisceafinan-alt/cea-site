@@ -22,6 +22,7 @@ window.CEA = (function () {
     conteudo: "site-publico",      // doc "conteudo": textos, contatos, links, cores
     fotos: "site-fotos",           // miniaturas + legenda + ordem
     fotosFull: "site-fotos-full",  // foto em tamanho grande (aberta ao clicar)
+    logos: "site-logos",           // logos dos parceiros (rodapé)
     editores: "site-editores"      // 1 doc por e-mail autorizado a editar (criado no console)
   };
 
@@ -91,6 +92,9 @@ window.CEA = (function () {
       missaoTitulo: "Nossa missão",
       missao: "Oferecer a cada criança uma educação de qualidade, humana e próxima da sua realidade, para que ela construa o próprio conhecimento e cresça com qualidade de vida."
     },
+    logos: {
+      titulo: "Nossos parceiros"
+    },
     galeria: {
       titulo: "Momentos na escola",
       intro: "Um pouco do nosso dia a dia: projetos, festas e muita brincadeira."
@@ -109,7 +113,7 @@ window.CEA = (function () {
       link: ""
     },
     secoes: {
-      etapas: true, parceiros: true, historia: true, galeria: true, familias: true, instagram: true, contato: true
+      etapas: true, parceiros: true, historia: true, galeria: true, familias: true, instagram: true, contato: true, logos: true
     },
     cores: {
       verde: "#0E6B30",

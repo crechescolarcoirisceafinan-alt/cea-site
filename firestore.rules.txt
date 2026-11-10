@@ -23,6 +23,10 @@ service cloud.firestore {
       allow read: if true;
       allow write: if ehEditorDoSite();
     }
+    match /site-logos/{id} {
+      allow read: if true;
+      allow write: if ehEditorDoSite();
+    }
 
     // Lista de editores: cada pessoa só vê o próprio registro.
     // Inclusões e exclusões são feitas pelo console do Firebase.
