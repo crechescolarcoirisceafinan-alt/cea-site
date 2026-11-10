@@ -224,8 +224,9 @@ const ABAS = [
   { id:"inicio", nome:"Início", desc:"A primeira parte do site, que todo mundo vê.", campos:[
     { k:"hero.titulo", r:"Título principal" },
     { k:"hero.texto", r:"Texto de apresentação", t:"textarea" },
-    { k:"hero.visual", r:"Imagem ao lado do título", t:"opcoes", op:[["arcoiris","Arco-íris com os anos de história"],["sol","Sol com os anos de história"],["imagem","Uma imagem minha"],["nenhuma","Nenhuma"]] },
-    { k:"hero.imagem", r:"Sua imagem", t:"imagem", a:"Usada quando a opção acima for “Uma imagem minha”. Formato horizontal fica melhor." },
+    { k:"hero.visual", r:"Imagem ao lado do título", t:"opcoes", op:[["arcoiris","Arco-íris com os anos de história"],["sol","Sol com os anos de história"],["imagem","Uma imagem minha"],["video","Um vídeo"],["nenhuma","Nenhuma"]] },
+    { k:"hero.video", r:"Vídeo", a:"Arquivo no GitHub: escreva videos/inicio.mp4 (o arquivo vai na pasta videos do site). Ou cole um link do YouTube. A imagem de baixo aparece enquanto o vídeo carrega." },
+    { k:"hero.imagem", r:"Sua imagem", t:"imagem", a:"Usada na opção “Uma imagem minha” e como capa do vídeo. Formato horizontal fica melhor." },
     { k:"hero.imagemAlt", r:"Descrição da imagem", a:"Para leitores de tela. Ex.: Crianças sobre um arco-íris com o logo da escola." },
     { k:"hero.faixa", r:"Faixa amarela", t:"lista", a:"Separe os itens por vírgula. Ex.: Manhã, Tarde, Integral" },
     { k:"contatoSecao.titulo", r:"Título da seção de contato" },

@@ -52,7 +52,8 @@ window.CEA = (function () {
     hero: {
       titulo: "Cuidando e educando com amor.",
       texto: "Do berçário, a partir dos 4 meses, ao 5º ano do Ensino Fundamental. Uma escola com jeito de família, que conhece cada criança pelo nome.",
-      visual: "arcoiris",   // arcoiris | sol | imagem | nenhuma
+      visual: "arcoiris",   // arcoiris | sol | imagem | video | nenhuma
+      video: "",            // videos/inicio.mp4  ou link do YouTube
       imagem: "",
       imagemAlt: "",
       faixa: ["Manhã", "Tarde", "Integral", "Bilíngue CCAA", "Robótica"]

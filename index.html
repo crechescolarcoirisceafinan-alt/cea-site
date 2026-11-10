@@ -250,6 +250,9 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .hero-img img{width:100%;height:auto;border-radius:28px;box-shadow:0 18px 40px rgba(0,0,0,.25)}
 @media (max-width:820px){.arco,.hero-img{width:min(380px,92%);order:-1}}
 
+.hero-video{aspect-ratio:16/9;border-radius:28px;overflow:hidden;background:rgba(0,0,0,.2);box-shadow:0 18px 40px rgba(0,0,0,.25)}
+.hero-video video,.hero-video iframe{width:100%;height:100%;object-fit:cover;border:0;display:block}
+
 </style>
 <style id="cores-personalizadas"></style>
 </head>
@@ -321,6 +324,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
       </svg>
     </div>
     <div class="hero-img oculto" id="hero-img"><img alt="" id="hero-img-el"></div>
+    <div class="hero-img hero-video oculto" id="hero-video"></div>
   </div>
 </section>
 
@@ -494,6 +498,24 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
     if (c.hero.mostrarAnos === false && !c.hero.visual) visual = "nenhuma";
     const imgOk = /^data:image\//.test(c.hero.imagem || "");
     if (visual === "imagem" && !imgOk) visual = "arcoiris";
+    const vid = String(c.hero.video || "").trim();
+    const yt = vid.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([\w-]{11})/);
+    const mp4 = /^(https:\/\/|videos\/)[^"'<>\s]+\.(mp4|webm)(\?[^"'<>\s]*)?$/i.test(vid);
+    if (visual === "video" && !yt && !mp4) visual = imgOk ? "imagem" : "arcoiris";
+    const boxV = $("#hero-video");
+    if (visual === "video" && boxV.dataset.src !== vid) {
+      boxV.dataset.src = vid;
+      const calmo = matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (yt) {
+        const id = yt[1];
+        boxV.innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/${id}?autoplay=${calmo ? 0 : 1}&mute=1&loop=1&playlist=${id}&controls=0&rel=0&playsinline=1" title="${esc(c.hero.imagemAlt || "Vídeo da escola")}" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`;
+      } else {
+        const poster = imgOk ? ` poster="${c.hero.imagem}"` : "";
+        boxV.innerHTML = `<video src="${esc(vid)}"${poster} muted loop playsinline preload="metadata" ${calmo ? "controls" : "autoplay"} aria-label="${esc(c.hero.imagemAlt || "Vídeo da escola")}"></video>`;
+      }
+    }
+    if (visual !== "video" && boxV.dataset.src) { boxV.innerHTML = ""; boxV.dataset.src = ""; }
+    boxV.classList.toggle("oculto", visual !== "video");
     $("#sol").classList.toggle("oculto", visual !== "sol");
     $("#arco").classList.toggle("oculto", visual !== "arcoiris");
     $("#hero-img").classList.toggle("oculto", visual !== "imagem");
