@@ -548,9 +548,16 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
       `<li><span class="ano">${esc(h.marca)}</span><div><h3>${esc(h.titulo)}</h3><p>${esc(h.texto)}</p></div></li>`).join("");
 
     // links
-    const zap = linkWhats(c);
-    $$(".js-zap").forEach(a => { a.href = zap; a.target = "_blank"; a.rel = "noopener"; });
-    const liga = (sel, url) => $$(sel).forEach(a => { a.href = /^https?:\/\//.test(url || "") ? url : zap; a.target = "_blank"; a.rel = "noopener"; });
+    // WhatsApp: número normalizado (acrescenta 55 se faltar)
+    const soNum = x => { let d = String(x || "").replace(/\D/g, ""); if (d.length === 10 || d.length === 11) d = "55" + d; return d; };
+    const zapNum = soNum(c.contato.whatsapp);
+    const zapWeb = n => "https://wa.me/" + n + "?text=" + encodeURIComponent(c.contato.mensagemWhatsapp || "");
+    const marcaZap = (a, n) => { a.href = zapWeb(n); a.dataset.zap = n; a.removeAttribute("target"); };
+    $$(".js-zap").forEach(a => marcaZap(a, zapNum));
+    const liga = (sel, url) => $$(sel).forEach(a => {
+      if (/^https?:\/\//.test(url || "")) { a.href = url; a.target = "_blank"; a.rel = "noopener"; delete a.dataset.zap; }
+      else marcaZap(a, zapNum);
+    });
     liga(".js-matricula", c.links.matricula);
     liga(".js-classapp", c.links.classapp);
     liga(".js-isaac", c.links.isaac);
@@ -559,11 +566,10 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
     $$(".js-insta-txt").forEach(el => el.textContent = "@" + ig);
     const telNum = String(c.contato.telefone || "").replace(/\D/g, "");
     if (c.contato.telefoneWhats) {
-      $("#link-tel").href = "https://wa.me/55" + telNum + "?text=" + encodeURIComponent(c.contato.mensagemWhatsapp || "");
-      $("#link-tel").target = "_blank"; $("#link-tel").rel = "noopener";
+      marcaZap($("#link-tel"), soNum(telNum));
       $("#tel-rotulo").textContent = "WhatsApp";
     } else {
-      $("#link-tel").href = "tel:+55" + telNum; $("#link-tel").removeAttribute("target");
+      $("#link-tel").href = "tel:+55" + telNum; $("#link-tel").removeAttribute("target"); delete $("#link-tel").dataset.zap;
       $("#tel-rotulo").textContent = "Telefone";
     }
     $("#dado-tel").classList.toggle("oculto", !c.contato.telefone);
@@ -655,6 +661,23 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
     visor.addEventListener("click", e => { if (e.target === visor) visor.close(); });
     visor.addEventListener("keydown", e => { if (e.key === "ArrowLeft") abrir(atual - 1); if (e.key === "ArrowRight") abrir(atual + 1); });
   }
+
+  // Abrir WhatsApp: no celular vai direto para o aplicativo
+  const ehCelular = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
+  document.addEventListener("click", e => {
+    const a = e.target.closest("a[data-zap]");
+    if (!a || !a.dataset.zap) return;
+    e.preventDefault();
+    const n = a.dataset.zap, msg = encodeURIComponent((window.__conteudo || padrao).contato.mensagemWhatsapp || "");
+    const web = "https://wa.me/" + n + "?text=" + msg;
+    if (ehCelular) {
+      location.href = "whatsapp://send?phone=" + n + "&text=" + msg;
+      // se o aplicativo não abrir (não instalado), cai no link normal
+      setTimeout(() => { if (!document.hidden) location.href = web; }, 1500);
+    } else {
+      window.open(web, "_blank", "noopener");
+    }
+  });
 
   // menu no celular
   const botao = $(".abrir-menu"), menu = $("#menu");
