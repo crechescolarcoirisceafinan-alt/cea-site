@@ -5,15 +5,16 @@
    ============================================================ */
 window.CEA = (function () {
 
-  /* COLE AQUI a configuração do projeto Firebase NOVO, só do site
-     (Console do Firebase > Configurações do projeto > Seus apps > Web > Config) */
+  /* Configuração do projeto Firebase do site (cea-matricula-site),
+     separado do sistema */
   const firebaseConfig = {
-    apiKey: "COLE_AQUI",
-    authDomain: "COLE_AQUI.firebaseapp.com",
-    projectId: "COLE_AQUI",
-    storageBucket: "COLE_AQUI.firebasestorage.app",
-    messagingSenderId: "COLE_AQUI",
-    appId: "COLE_AQUI"
+    apiKey: "AIzaSyAftWajEwhZiM1QDx6kOdeveM5FaOCpxFE",
+    authDomain: "cea-matricula-site.firebaseapp.com",
+    projectId: "cea-matricula-site",
+    storageBucket: "cea-matricula-site.firebasestorage.app",
+    messagingSenderId: "895613748769",
+    appId: "1:895613748769:web:4af99b7f164ab1b6b54560",
+    measurementId: "G-5D30QDY9JB"
   };
 
   /* Coleções no Firestore (separadas das do sistema) */
