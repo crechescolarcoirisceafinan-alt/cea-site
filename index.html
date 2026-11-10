@@ -121,7 +121,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .sol .disco span{font-family:var(--display);font-weight:700;font-size:1.35rem;line-height:1.1;display:block;margin-top:6px}
 @media (max-width:820px){
   .hero .wrap{grid-template-columns:1fr;padding:56px 0 72px}
-  .sol{width:min(300px,80%);order:-1}
+  .sol{width:min(300px,80%)}
 }
 
 /* Faixa de turnos */
@@ -248,7 +248,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .arco-txt{font-family:var(--display);font-weight:700;font-size:17px;fill:var(--sol)}
 .hero-img{width:min(560px,100%);margin-inline:auto}
 .hero-img img{width:100%;height:auto;border-radius:28px;box-shadow:0 18px 40px rgba(0,0,0,.25)}
-@media (max-width:820px){.arco,.hero-img{width:min(380px,92%);order:-1}}
+@media (max-width:820px){.arco,.hero-img{width:min(380px,92%)}}
 
 /* Imagem ou vídeo próprios: coluna maior, proporção original */
 .hero.com-midia .wrap{grid-template-columns:1fr 1.1fr;gap:56px}
@@ -281,6 +281,18 @@ a.logo-parc:hover{transform:translateY(-3px)}
 .extra-link{margin-top:auto;padding-top:6px;font-family:var(--display);font-weight:700;font-size:1.05rem;color:var(--verde);text-decoration:none}
 .extra-link::after{content:" →"}
 .extra-link:hover{text-decoration:underline}
+
+/* Coluna da direita do início (aviso + imagem/vídeo) */
+.hero-lado{display:flex;flex-direction:column;align-items:center;gap:20px;min-width:0}
+@media (max-width:820px){.hero-lado{order:-1}}
+.aviso-destaque{display:flex;flex-direction:column;gap:8px;width:100%;max-width:680px;background:var(--sol);color:#16301E;text-decoration:none;border-radius:22px;padding:20px 24px;box-shadow:0 12px 30px rgba(0,0,0,.22);transition:transform .15s ease}
+.aviso-destaque:hover{transform:translateY(-3px)}
+.ad-selo{display:inline-flex;align-items:center;gap:8px;align-self:flex-start;background:#0A4F23;color:#FFFFFF;font-weight:700;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;padding:4px 12px;border-radius:999px}
+.ad-ponto{width:8px;height:8px;border-radius:50%;background:var(--sol);animation:pulsar 1.6s ease-in-out infinite}
+@keyframes pulsar{50%{opacity:.25;transform:scale(.7)}}
+.ad-texto{font-family:var(--display);font-weight:800;font-size:clamp(1.45rem,2.6vw,2rem);line-height:1.12}
+.ad-botao{font-family:var(--display);font-weight:700;font-size:1.1rem;color:#0A4F23}
+.aviso-destaque:not(.oculto) ~ .hero-video video{max-height:62vh}
 
 </style>
 <style id="cores-personalizadas"></style>
@@ -331,6 +343,12 @@ a.logo-parc:hover{transform:translateY(-3px)}
         <span data-c="contato.bairroCidade"></span>
       </div>
     </div>
+    <div class="hero-lado">
+    <a class="aviso-destaque oculto" id="aviso-destaque" href="#contato">
+      <span class="ad-selo"><span class="ad-ponto" aria-hidden="true"></span>Aviso</span>
+      <span class="ad-texto" id="ad-texto"></span>
+      <span class="ad-botao" id="ad-botao"></span>
+    </a>
     <div class="sol" id="sol" role="img">
       <svg class="raios" viewBox="0 0 200 200" aria-hidden="true">
         <g style="fill:var(--sol)">
@@ -355,6 +373,7 @@ a.logo-parc:hover{transform:translateY(-3px)}
     </div>
     <div class="hero-img oculto" id="hero-img"><img alt="" id="hero-img-el"></div>
     <div class="hero-img hero-video oculto" id="hero-video"></div>
+    </div>
   </div>
 </section>
 
@@ -517,7 +536,7 @@ a.logo-parc:hover{transform:translateY(-3px)}
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="comum.js?v=7"></script>
+<script src="comum.js?v=8"></script>
 <script>
 (function(){
   const { padrao, mesclar, esc, linkWhats, COL } = CEA;
@@ -642,7 +661,20 @@ a.logo-parc:hover{transform:translateY(-3px)}
 
     // aviso
     const av = $("#aviso");
-    av.classList.toggle("oculto", !(c.aviso.ativo && c.aviso.texto));
+    const pos = c.aviso.posicao || "destaque";   // destaque | topo | ambos
+    const avisoOn = !!(c.aviso.ativo && c.aviso.texto);
+    av.classList.toggle("oculto", !(avisoOn && (pos === "topo" || pos === "ambos")));
+    const ad = $("#aviso-destaque");
+    ad.classList.toggle("oculto", !(avisoOn && (pos === "destaque" || pos === "ambos")));
+    $("#ad-texto").textContent = c.aviso.texto || "";
+    $("#ad-botao").textContent = (c.aviso.botao || "Garanta a vaga") + " →";
+    if (/^https?:\/\//.test(c.aviso.link || "")) {
+      ad.href = c.aviso.link; ad.target = "_blank"; ad.rel = "noopener"; delete ad.dataset.zap;
+    } else {
+      const nZ = soNumZap(c.contato.whatsapp);
+      ad.href = "https://wa.me/" + nZ + "?text=" + encodeURIComponent("Olá! Gostaria de informações sobre matrículas na Creche Escola Arco-Íris.");
+      ad.dataset.zap = nZ; ad.removeAttribute("target");
+    }
     av.innerHTML = esc(c.aviso.texto) + (/^https?:\/\//.test(c.aviso.link || "") ? ` <a href="${esc(c.aviso.link)}" target="_blank" rel="noopener">Saiba mais</a>` : "");
 
     // seções visíveis

@@ -115,7 +115,9 @@ window.CEA = (function () {
     aviso: {
       ativo: false,
       texto: "Matrículas abertas para o próximo ano letivo!",
-      link: ""
+      link: "",
+      botao: "Garanta a vaga",
+      posicao: "destaque"   // destaque | topo | ambos
     },
     secoes: {
       etapas: true, parceiros: true, historia: true, galeria: true, familias: true, instagram: true, contato: true, logos: true, extras: true

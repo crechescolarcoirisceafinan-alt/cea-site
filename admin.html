@@ -187,7 +187,7 @@ textarea{min-height:96px;resize:vertical}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="comum.js?v=7"></script>
+<script src="comum.js?v=8"></script>
 <script>
 (function(){
 const { padrao, mesclar, esc, COL } = CEA;
@@ -282,7 +282,9 @@ const ABAS = [
   { id:"aviso", nome:"Aviso", desc:"Uma faixa no topo do site para recados importantes.", campos:[
     { k:"aviso.ativo", r:"Mostrar aviso no site", t:"check" },
     { k:"aviso.texto", r:"Texto do aviso" },
-    { k:"aviso.link", r:"Link do “Saiba mais” (opcional)", t:"url" },
+    { k:"aviso.posicao", r:"Onde mostrar", t:"opcoes", op:[["destaque","Grande, no início, acima da imagem ou vídeo"],["topo","Faixa fina no topo do site"],["ambos","Nos dois lugares"]] },
+    { k:"aviso.botao", r:"Texto do botão", a:"Ex.: Garanta a vaga, Agende uma visita" },
+    { k:"aviso.link", r:"Link do botão (opcional)", t:"url", a:"Vazio = o botão abre o WhatsApp com uma mensagem sobre matrícula." },
     { k:"galeria.titulo", r:"Título da galeria de fotos" },
     { k:"galeria.intro", r:"Texto da galeria de fotos", t:"textarea" }
   ]},
