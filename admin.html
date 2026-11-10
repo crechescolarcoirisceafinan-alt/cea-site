@@ -206,9 +206,10 @@ const ABAS = [
   ]},
   { id:"contato", nome:"Contato e links", desc:"Como as famílias falam com a escola e os links dos parceiros.", campos:[
     { grupo:true, campos:[
-      { k:"contato.whatsapp", r:"WhatsApp (só números)", a:"Com 55 e DDD. Ex.: 5571991629960" },
-      { k:"contato.whatsappExibicao", r:"WhatsApp como aparece no site", a:"Ex.: (71) 99162-9960" },
-      { k:"contato.telefone", r:"Telefone fixo", a:"Deixe vazio para esconder." },
+      { k:"contato.whatsapp", r:"WhatsApp principal (só números)", a:"Usado nos botões do site. Com 55 e DDD. Ex.: 5571991629960" },
+      { k:"contato.whatsappExibicao", r:"WhatsApp principal como aparece no site", a:"O mesmo número de cima, formatado. Ex.: (71) 99162-9960" },
+      { k:"contato.telefone", r:"Segundo telefone", a:"Ex.: (71) 3565-5806. Deixe vazio para esconder." },
+      { k:"contato.telefoneWhats", r:"O segundo telefone também é WhatsApp", t:"check" },
       { k:"contato.instagram", r:"Instagram", a:"Sem o @" },
       { k:"contato.endereco", r:"Endereço" },
       { k:"contato.bairroCidade", r:"Bairro e cidade" }
