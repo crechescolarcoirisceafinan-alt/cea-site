@@ -1,0 +1,39 @@
+// Regras do Firestore para o projeto NOVO, só do site.
+// Firestore > Regras: apague o que estiver lá, cole tudo isto e clique em Publicar.
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function ehEditorDoSite() {
+      return request.auth != null
+        && request.auth.token.email != null
+        && exists(/databases/$(database)/documents/site-editores/$(request.auth.token.email.lower()));
+    }
+
+    // Conteúdo do site: qualquer visitante lê, só editores alteram
+    match /site-publico/{doc} {
+      allow read: if true;
+      allow write: if ehEditorDoSite();
+    }
+    match /site-fotos/{id} {
+      allow read: if true;
+      allow write: if ehEditorDoSite();
+    }
+    match /site-fotos-full/{id} {
+      allow read: if true;
+      allow write: if ehEditorDoSite();
+    }
+
+    // Lista de editores: cada pessoa só vê o próprio registro.
+    // Inclusões e exclusões são feitas pelo console do Firebase.
+    match /site-editores/{email} {
+      allow read: if request.auth != null && request.auth.token.email.lower() == email;
+      allow write: if false;
+    }
+
+    // Todo o resto fica bloqueado
+    match /{documento=**} {
+      allow read, write: if false;
+    }
+  }
+}
