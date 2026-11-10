@@ -38,6 +38,7 @@ window.CEA = (function () {
       whatsappExibicao: "(71) 99162-9960",
       mensagemWhatsapp: "Olá! Vi o site da Creche Escola Arco-Íris e gostaria de agendar uma visita.",
       telefone: "(71) 3014-6482",
+      telefoneWhats: false,
       endereco: "Rua Quaresmeiras Vermelhas, 204",
       bairroCidade: "Jardim das Margaridas, Salvador, BA",
       instagram: "crechescolarcoiris",
@@ -51,7 +52,9 @@ window.CEA = (function () {
     hero: {
       titulo: "Cuidando e educando com amor.",
       texto: "Do berçário, a partir dos 4 meses, ao 5º ano do Ensino Fundamental. Uma escola com jeito de família, que conhece cada criança pelo nome.",
-      mostrarAnos: true,
+      visual: "arcoiris",   // arcoiris | sol | imagem | nenhuma
+      imagem: "",
+      imagemAlt: "",
       faixa: ["Manhã", "Tarde", "Integral", "Bilíngue CCAA", "Robótica"]
     },
     etapas: {

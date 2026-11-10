@@ -95,6 +95,7 @@ textarea{min-height:96px;resize:vertical}
 
 /* Imagem (logo) */
 .logo-campo{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.logo-campo img.previa-img{width:240px;height:auto;max-height:160px;object-fit:contain}
 .logo-campo img{width:84px;height:84px;object-fit:contain;border-radius:12px;background:var(--fundo);border:1px solid var(--linha)}
 
 /* Fotos */
@@ -223,7 +224,9 @@ const ABAS = [
   { id:"inicio", nome:"Início", desc:"A primeira parte do site, que todo mundo vê.", campos:[
     { k:"hero.titulo", r:"Título principal" },
     { k:"hero.texto", r:"Texto de apresentação", t:"textarea" },
-    { k:"hero.mostrarAnos", r:"Mostrar o sol com os anos de história", t:"check" },
+    { k:"hero.visual", r:"Imagem ao lado do título", t:"opcoes", op:[["arcoiris","Arco-íris com os anos de história"],["sol","Sol com os anos de história"],["imagem","Uma imagem minha"],["nenhuma","Nenhuma"]] },
+    { k:"hero.imagem", r:"Sua imagem", t:"imagem", a:"Usada quando a opção acima for “Uma imagem minha”. Formato horizontal fica melhor." },
+    { k:"hero.imagemAlt", r:"Descrição da imagem", a:"Para leitores de tela. Ex.: Crianças sobre um arco-íris com o logo da escola." },
     { k:"hero.faixa", r:"Faixa amarela", t:"lista", a:"Separe os itens por vírgula. Ex.: Manhã, Tarde, Integral" },
     { k:"contatoSecao.titulo", r:"Título da seção de contato" },
     { k:"contatoSecao.intro", r:"Texto da seção de contato", t:"textarea" }
@@ -392,6 +395,23 @@ function criarCampo(c, alvo, caminho){
       const url = await reduzir(f, 400, "image/png", 0.92); img.src = url; muda(url);
     });
     wrap.querySelector("button").addEventListener("click", () => { img.src = "logo.png"; muda(""); });
+  } else if (t === "opcoes") {
+    const atual = val || c.op[0][0];
+    wrap.innerHTML = `<span style="font-weight:700">${esc(c.r)}</span>` + c.op.map(([v, rot]) =>
+      `<label class="check"><input type="radio" name="${id}" value="${esc(v)}" ${v === atual ? "checked" : ""}> ${esc(rot)}</label>`).join("") + ajuda;
+    wrap.querySelectorAll("input").forEach(r => r.addEventListener("change", e => muda(e.target.value)));
+  } else if (t === "imagem") {
+    wrap.innerHTML = `<span style="font-weight:700">${esc(c.r)}</span>
+      <div class="logo-campo"><img alt="" class="previa-img" ${val ? `src="${val}"` : 'style="display:none"'}>
+      <label class="btn btn-pequeno">${val ? "Trocar imagem" : "Escolher imagem"}<input type="file" accept="image/*" class="oculto"></label>
+      <button class="btn btn-pequeno btn-perigo" type="button" ${val ? "" : 'style="display:none"'}>Remover</button></div>${ajuda}`;
+    const img = wrap.querySelector("img"), rem = wrap.querySelector("button");
+    wrap.querySelector("input").addEventListener("change", async e => {
+      const f = e.target.files[0]; if (!f) return;
+      const url = await reduzir(f, 1400, "image/webp", 0.85, 650000);
+      img.src = url; img.style.display = ""; rem.style.display = ""; muda(url);
+    });
+    rem.addEventListener("click", () => { img.removeAttribute("src"); img.style.display = "none"; rem.style.display = "none"; muda(""); });
   } else if (t === "rep") {
     return criarRepetidor(c, alvo, caminho);
   }
