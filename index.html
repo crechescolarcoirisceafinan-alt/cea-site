@@ -269,6 +269,19 @@ a.logo-parc:hover{transform:translateY(-3px)}
 .logo-parc img{display:block;width:auto;height:auto;max-width:100%;max-height:100%;min-width:0;min-height:0;object-fit:contain;border-radius:6px}
 @media (max-width:560px){.logo-parc{width:calc(50% - 7px);height:76px}}
 
+/* Aulas extraclasse */
+.sec-sol{background:var(--sol-claro)}
+.extras{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:20px;margin-top:44px}
+.extra{background:var(--cartao);border-radius:var(--raio-p);padding:26px;display:flex;flex-direction:column;gap:10px;border:1px solid var(--linha)}
+.extra-icone{font-size:2.4rem;line-height:1}
+.extra h3{color:var(--verde)}
+.extra-info{display:flex;flex-wrap:wrap;gap:6px}
+.extra-info span{background:var(--fundo-alt);color:var(--tinta);font-weight:700;font-size:.88rem;padding:3px 12px;border-radius:999px}
+.extra p{color:var(--tinta-suave)}
+.extra-link{margin-top:auto;padding-top:6px;font-family:var(--display);font-weight:700;font-size:1.05rem;color:var(--verde);text-decoration:none}
+.extra-link::after{content:" →"}
+.extra-link:hover{text-decoration:underline}
+
 </style>
 <style id="cores-personalizadas"></style>
 </head>
@@ -289,6 +302,7 @@ a.logo-parc:hover{transform:translateY(-3px)}
     <nav class="menu" id="menu" aria-label="Principal">
       <a href="#etapas" data-sec="etapas">Etapas</a>
       <a href="#diferenciais" data-sec="parceiros">Diferenciais</a>
+      <a href="#extraclasse" data-sec="extras">Extraclasse</a>
       <a href="#historia" data-sec="historia">Nossa história</a>
       <a href="#galeria" data-sec="galeria">Fotos</a>
       <a href="#familias" data-sec="familias">Famílias</a>
@@ -359,6 +373,14 @@ a.logo-parc:hover{transform:translateY(-3px)}
     <h2 data-c="parceiros.titulo"></h2>
     <p class="intro" data-c="parceiros.intro"></p>
     <div class="parceiros" id="lista-parceiros"></div>
+  </div>
+</section>
+
+<section class="sec sec-sol oculto" id="extraclasse">
+  <div class="wrap">
+    <h2 data-c="extras.titulo"></h2>
+    <p class="intro" data-c="extras.intro"></p>
+    <div class="extras" id="lista-extras"></div>
   </div>
 </section>
 
@@ -495,7 +517,7 @@ a.logo-parc:hover{transform:translateY(-3px)}
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="comum.js?v=6"></script>
+<script src="comum.js?v=7"></script>
 <script>
 (function(){
   const { padrao, mesclar, esc, linkWhats, COL } = CEA;
@@ -503,6 +525,8 @@ a.logo-parc:hover{transform:translateY(-3px)}
   const $ = s => document.querySelector(s), $$ = s => document.querySelectorAll(s);
   const pegar = (o, caminho) => caminho.split(".").reduce((a, k) => a == null ? a : a[k], o);
   const CACHE = "cea-site-conteudo";
+
+  const soNumZap = x => { let d = String(x || "").replace(/\D/g, ""); if (d.length === 10 || d.length === 11) d = "55" + d; return d; };
 
   function aplicar(c){
     // textos simples
@@ -561,6 +585,26 @@ a.logo-parc:hover{transform:translateY(-3px)}
       `<article class="etapa"><span class="idade">${esc(e.selo)}</span><h3>${esc(e.titulo)}</h3><p>${esc(e.texto)}</p></article>`).join("");
     $("#lista-parceiros").innerHTML = c.parceiros.itens.map(p =>
       `<article class="parceiro${p.destaque ? " destaque" : ""}"><div class="quem">${esc(p.nome)}</div><h3>${esc(p.titulo)}</h3><p>${esc(p.texto)}</p></article>`).join("");
+    // aulas extraclasse
+    const ex = c.extras || padrao.extras || { titulo: "Aulas extraclasse", intro: "", itens: [] };
+    const exItens = (ex.itens || []).filter(x => x && x.titulo);
+    $("#lista-extras").innerHTML = exItens.map(x => {
+      const msg = "Olá! Gostaria de saber mais sobre a aula de " + x.titulo + " na Creche Escola Arco-Íris.";
+      const n = soNumZap(c.contato.whatsapp);
+      return `<article class="extra">
+        ${x.icone ? `<span class="extra-icone" aria-hidden="true">${esc(x.icone)}</span>` : ""}
+        <h3>${esc(x.titulo)}</h3>
+        ${(x.publico || x.horario) ? `<div class="extra-info">${x.publico ? `<span>${esc(x.publico)}</span>` : ""}${x.horario ? `<span>${esc(x.horario)}</span>` : ""}</div>` : ""}
+        ${x.texto ? `<p>${esc(x.texto)}</p>` : ""}
+        <a class="extra-link" data-zap="${n}" href="https://wa.me/${n}?text=${encodeURIComponent(msg)}">Quero saber mais</a>
+      </article>`;
+    }).join("");
+    const mostraEx = exItens.length > 0 && c.secoes.extras !== false;
+    $("#extraclasse").classList.toggle("oculto", !mostraEx);
+    $$('[data-sec="extras"]').forEach(a => a.classList.toggle("oculto", !mostraEx));
+    if (ex.titulo) $("#extraclasse h2").textContent = ex.titulo;
+    if (ex.intro !== undefined) $("#extraclasse .intro").textContent = ex.intro;
+
     $("#lista-historia").innerHTML = c.historia.itens.map(h =>
       `<li><span class="ano">${esc(h.marca)}</span><div><h3>${esc(h.titulo)}</h3><p>${esc(h.texto)}</p></div></li>`).join("");
 
@@ -604,7 +648,7 @@ a.logo-parc:hover{transform:translateY(-3px)}
     // seções visíveis
     const mapaSec = { etapas: "#etapas", parceiros: "#diferenciais", historia: "#historia", familias: "#familias", instagram: "#instagram", contato: "#contato" };
     Object.entries(mapaSec).forEach(([k, sel]) => $(sel).classList.toggle("oculto", c.secoes[k] === false));
-    $$("[data-sec]").forEach(a => a.classList.toggle("oculto", c.secoes[a.dataset.sec] === false || (a.dataset.sec === "galeria" && !temFotos)));
+    $$("[data-sec]").forEach(a => { if (a.dataset.sec !== "extras") a.classList.toggle("oculto", c.secoes[a.dataset.sec] === false || (a.dataset.sec === "galeria" && !temFotos)); });
 
     // cores (só no modo claro; o escuro mantém tons próprios)
     const hex = (x, d) => /^#[0-9a-f]{6}$/i.test(x || "") ? x : d;

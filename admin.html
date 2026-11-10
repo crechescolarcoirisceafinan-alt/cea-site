@@ -187,7 +187,7 @@ textarea{min-height:96px;resize:vertical}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="comum.js?v=6"></script>
+<script src="comum.js?v=7"></script>
 <script>
 (function(){
 const { padrao, mesclar, esc, COL } = CEA;
@@ -250,6 +250,17 @@ const ABAS = [
       { k:"titulo", r:"Título" }, { k:"nome", r:"Parceiro", a:"Ex.: Nave à Vela" }, { k:"texto", r:"Descrição", t:"textarea" }, { k:"destaque", r:"Destaque", t:"check" }
     ]}
   ]},
+  { id:"extras", nome:"Extraclasse", desc:"Aulas extraclasse. A seção só aparece no site quando houver pelo menos uma aula. Cada aula ganha um botão que abre o WhatsApp com o nome dela na mensagem.", campos:[
+    { k:"extras.titulo", r:"Título da seção" },
+    { k:"extras.intro", r:"Texto de introdução", t:"textarea" },
+    { k:"extras.itens", r:"Aula", t:"rep", novo:{ icone:"", titulo:"", publico:"", horario:"", texto:"" }, sub:[
+      { k:"titulo", r:"Nome da aula", a:"Ex.: Ballet, Judô, Musicalização" },
+      { k:"icone", r:"Ícone (emoji, opcional)", a:"Ex.: 🩰 🥋 ⚽ 🎨 🎵 🧪 ♟️ 🏊" },
+      { k:"publico", r:"Para quem", a:"Ex.: 3 a 6 anos, ou Fundamental I" },
+      { k:"horario", r:"Dias e horários", a:"Ex.: Terças e quintas, 15h" },
+      { k:"texto", r:"Descrição", t:"textarea" }
+    ]}
+  ]},
   { id:"historia", nome:"História", desc:"A história e a missão da escola.", campos:[
     { k:"historia.titulo", r:"Título da seção" },
     { grupo:true, campos:[
@@ -284,6 +295,7 @@ const ABAS = [
     { k:"secoes.instagram", r:"Chamada do Instagram", t:"check" },
     { k:"secoes.contato", r:"Contato e mapa", t:"check" },
     { k:"secoes.logos", r:"Logos dos parceiros no rodapé", t:"check" },
+    { k:"secoes.extras", r:"Aulas extraclasse", t:"check" },
     { k:"cores.verde", r:"Cor principal", t:"cor" },
     { k:"cores.sol", r:"Cor de destaque", t:"cor" }
   ]}

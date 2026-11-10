@@ -80,6 +80,11 @@ window.CEA = (function () {
         { nome: "Isaac", titulo: "Mensalidades sem complicação", texto: "Boleto, Pix e cartão em um só lugar, com lembretes de vencimento e atendimento para as famílias.", destaque: false }
       ]
     },
+    extras: {
+      titulo: "Aulas extraclasse",
+      intro: "Atividades opcionais para seu filho se movimentar, criar e descobrir novos talentos.",
+      itens: []   // { icone, titulo, publico, horario, texto }
+    },
     historia: {
       titulo: "Tudo começou com uma placa na porta",
       placa: "CUIDA-SE DE CRIANÇAS",
@@ -113,7 +118,7 @@ window.CEA = (function () {
       link: ""
     },
     secoes: {
-      etapas: true, parceiros: true, historia: true, galeria: true, familias: true, instagram: true, contato: true, logos: true
+      etapas: true, parceiros: true, historia: true, galeria: true, familias: true, instagram: true, contato: true, logos: true, extras: true
     },
     cores: {
       verde: "#0E6B30",
