@@ -187,10 +187,11 @@ textarea{min-height:96px;resize:vertical}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="comum.js"></script>
+<script src="comum.js?v=6"></script>
 <script>
 (function(){
 const { padrao, mesclar, esc, COL } = CEA;
+const COL_LOGOS = COL.logos || "site-logos";
 const db = CEA.iniciarFirebase();
 if (!db) {
   document.body.innerHTML = '<div class="login"><form><h1>Falta configurar o Firebase</h1><p>Abra o arquivo comum.js e cole a configuração do projeto Firebase do site no lugar de "COLE_AQUI".</p></form></div>';
@@ -615,7 +616,7 @@ async function montarLogos(p){
   zona.addEventListener("drop", e => enviarLogos([...e.dataTransfer.files].filter(f => f.type.startsWith("image/"))));
   $("#arquivos-logo").addEventListener("change", e => { enviarLogos([...e.target.files]); e.target.value = ""; });
   try {
-    const snap = await db.collection(COL.logos).orderBy("ordem").get();
+    const snap = await db.collection(COL_LOGOS).orderBy("ordem").get();
     logos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
   } catch(e){ logos = []; aviso("Não consegui carregar as logos: " + (e.code === "permission-denied" ? "atualize as regras do Firestore" : e.message)); }
   desenharLogos();
@@ -629,7 +630,7 @@ async function enviarLogos(arquivos){
     try {
       const img = await reduzir(arquivos[i], 400, "image/png", 0.92, 300000);
       const nome = arquivos[i].name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ");
-      const ref = db.collection(COL.logos).doc();
+      const ref = db.collection(COL_LOGOS).doc();
       const meta = { img, nome, link: "", ordem: base++, visivel: true, criadoEm: new Date().toISOString() };
       await ref.set(meta);
       logos.push({ id: ref.id, ...meta });
@@ -667,10 +668,10 @@ document.addEventListener("change", async e => {
     if (e.target.dataset.campo) {
       const campo = e.target.dataset.campo; let v = e.target.value.trim();
       if (campo === "link" && v && !/^https?:\/\//.test(v)) { v = "https://" + v; e.target.value = v; }
-      l[campo] = v; await db.collection(COL.logos).doc(l.id).update({ [campo]: v }); aviso("Salvo.");
+      l[campo] = v; await db.collection(COL_LOGOS).doc(l.id).update({ [campo]: v }); aviso("Salvo.");
     }
     if (e.target.matches("[data-visivel-logo]")) {
-      l.visivel = e.target.checked; await db.collection(COL.logos).doc(l.id).update({ visivel: l.visivel });
+      l.visivel = e.target.checked; await db.collection(COL_LOGOS).doc(l.id).update({ visivel: l.visivel });
       card.classList.toggle("escondida", !l.visivel); aviso(l.visivel ? "A logo voltou para o site." : "A logo foi escondida do site.");
     }
   } catch(err){ aviso("Não foi possível salvar: " + err.message); }
@@ -681,7 +682,7 @@ document.addEventListener("click", async e => {
   const i = logos.findIndex(x => x.id === card.dataset.id), l = logos[i];
   if (e.target.closest("[data-xl]")) {
     if (!confirm(`Excluir a logo "${l.nome || "do parceiro"}"?`)) return;
-    try { await db.collection(COL.logos).doc(l.id).delete(); logos.splice(i, 1); desenharLogos(); aviso("Logo excluída."); }
+    try { await db.collection(COL_LOGOS).doc(l.id).delete(); logos.splice(i, 1); desenharLogos(); aviso("Logo excluída."); }
     catch(err){ aviso("Não foi possível excluir: " + err.message); }
   }
   const m = e.target.closest("[data-ml]");
@@ -691,8 +692,8 @@ document.addEventListener("click", async e => {
     desenharLogos();
     try {
       const lote = db.batch();
-      lote.update(db.collection(COL.logos).doc(l.id), { ordem: l.ordem });
-      lote.update(db.collection(COL.logos).doc(g.id), { ordem: g.ordem });
+      lote.update(db.collection(COL_LOGOS).doc(l.id), { ordem: l.ordem });
+      lote.update(db.collection(COL_LOGOS).doc(g.id), { ordem: g.ordem });
       await lote.commit();
     } catch(err){ aviso("Não foi possível mudar a ordem: " + err.message); }
   }

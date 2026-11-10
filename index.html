@@ -495,10 +495,11 @@ a.logo-parc:hover{transform:translateY(-3px)}
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="comum.js"></script>
+<script src="comum.js?v=6"></script>
 <script>
 (function(){
   const { padrao, mesclar, esc, linkWhats, COL } = CEA;
+  const COL_LOGOS = COL.logos || "site-logos";
   const $ = s => document.querySelector(s), $$ = s => document.querySelectorAll(s);
   const pegar = (o, caminho) => caminho.split(".").reduce((a, k) => a == null ? a : a[k], o);
   const CACHE = "cea-site-conteudo";
@@ -635,7 +636,7 @@ a.logo-parc:hover{transform:translateY(-3px)}
     }).catch(e => console.warn("Conteúdo do site não carregado:", e.message));
 
     // logos dos parceiros
-    db.collection(COL.logos).orderBy("ordem").get().then(snap => {
+    db.collection(COL_LOGOS).orderBy("ordem").get().then(snap => {
       const logos = snap.docs.map(d => d.data()).filter(l => l.visivel !== false && /^data:image\//.test(l.img || ""));
       $("#logos-parc").innerHTML = logos.map(l => {
         const img = `<img src="${l.img}" alt="${esc(l.nome || "Parceiro")}" loading="lazy">`;
