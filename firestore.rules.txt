@@ -28,6 +28,23 @@ service cloud.firestore {
       allow write: if ehEditorDoSite();
     }
 
+    // Currículos: qualquer visitante pode ENVIAR (com limites); só editores leem e apagam
+    match /site-curriculos/{id} {
+      allow create: if request.resource.data.keys().hasOnly(['nome','telefone','email','cargo','texto','pdf','pdfNome','consentimento','lido','criadoEm'])
+        && request.resource.data.nome is string && request.resource.data.nome.size() >= 3 && request.resource.data.nome.size() <= 110
+        && request.resource.data.telefone is string && request.resource.data.telefone.size() <= 30
+        && request.resource.data.email is string && request.resource.data.email.size() <= 150
+        && request.resource.data.cargo is string && request.resource.data.cargo.size() <= 70
+        && request.resource.data.texto is string && request.resource.data.texto.size() <= 19000
+        && request.resource.data.pdf is string && request.resource.data.pdf.size() <= 960000
+        && request.resource.data.pdfNome is string && request.resource.data.pdfNome.size() <= 180
+        && (request.resource.data.texto.size() >= 30 || request.resource.data.pdf.size() > 0)
+        && request.resource.data.consentimento == true
+        && request.resource.data.lido == false
+        && request.resource.data.criadoEm == request.time;
+      allow read, update, delete: if ehEditorDoSite();
+    }
+
     // Lista de editores: cada pessoa só vê o próprio registro.
     // Inclusões e exclusões são feitas pelo console do Firebase.
     match /site-editores/{email} {

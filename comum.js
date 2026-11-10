@@ -23,6 +23,7 @@ window.CEA = (function () {
     fotos: "site-fotos",           // miniaturas + legenda + ordem
     fotosFull: "site-fotos-full",  // foto em tamanho grande (aberta ao clicar)
     logos: "site-logos",           // logos dos parceiros (rodapé)
+    curriculos: "site-curriculos", // currículos enviados pelo "Trabalhe conosco"
     editores: "site-editores"      // 1 doc por e-mail autorizado a editar (criado no console)
   };
 
@@ -85,6 +86,21 @@ window.CEA = (function () {
       intro: "Atividades opcionais para seu filho se movimentar, criar e descobrir novos talentos.",
       itens: []   // { icone, titulo, publico, horario, texto }
     },
+    links: {
+      titulo: "Links úteis",
+      intro: "Atalhos para as famílias e para a comunidade.",
+      itens: [
+        { icone: "👟", titulo: "Projeto Pé na Escola", texto: "Cadastro no programa da Prefeitura de Salvador.", link: "", whatsapp: "", mensagem: "", destaque: false },
+        { icone: "📝", titulo: "Solicite um orçamento", texto: "Valores e condições para o seu filho.", link: "", whatsapp: "", mensagem: "Olá! Gostaria de solicitar um orçamento.", destaque: false },
+        { icone: "👩‍🏫", titulo: "Fale com a coordenação", texto: "Dúvidas pedagógicas e acompanhamento do seu filho.", link: "", whatsapp: "", mensagem: "Olá! Gostaria de falar com a coordenação.", destaque: false },
+        { icone: "⭐", titulo: "Avalie a escola no Google", texto: "Gostou da Arco-Íris? Conte para outras famílias como é fazer parte da nossa escola.", link: "", whatsapp: "", mensagem: "", destaque: true }
+      ]
+    },
+    trabalhe: {
+      titulo: "Trabalhe conosco",
+      intro: "Quer fazer parte da equipe da Arco-Íris? Preencha seus dados e cole o seu currículo abaixo.",
+      cargos: ["Professor(a)", "Auxiliar de classe", "Berçarista", "Estagiário(a)", "Serviços gerais", "Outro"]
+    },
     historia: {
       titulo: "Tudo começou com uma placa na porta",
       placa: "CUIDA-SE DE CRIANÇAS",
@@ -120,7 +136,7 @@ window.CEA = (function () {
       posicao: "destaque"   // destaque | topo | ambos
     },
     secoes: {
-      etapas: true, parceiros: true, historia: true, galeria: true, familias: true, instagram: true, contato: true, logos: true, extras: true
+      etapas: true, parceiros: true, historia: true, galeria: true, familias: true, instagram: true, contato: true, logos: true, extras: true, links: true, trabalhe: true
     },
     cores: {
       verde: "#0E6B30",

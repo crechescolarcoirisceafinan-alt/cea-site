@@ -94,12 +94,14 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .menu .btn:hover{background:var(--sol)}
 .abrir-menu{display:none;margin-left:auto;background:none;border:2px solid var(--linha);border-radius:12px;width:48px;height:48px;color:var(--tinta);cursor:pointer}
 .abrir-menu svg{width:24px;height:24px}
+.menu .so-celular{display:none}
 @media (max-width:960px){
   .abrir-menu{display:grid;place-items:center}
   .menu{position:absolute;top:100%;left:0;right:0;flex-direction:column;align-items:stretch;background:var(--fundo);border-bottom:1px solid var(--linha);padding:12px 20px 20px;display:none}
   .menu.aberto{display:flex}
   .menu a{padding:14px 12px}
   .menu .btn{margin:8px 0 0;justify-content:center}
+  .menu .so-celular{display:block}
 }
 
 /* Hero */
@@ -294,6 +296,36 @@ a.logo-parc:hover{transform:translateY(-3px)}
 .ad-botao{font-family:var(--display);font-weight:700;font-size:1.1rem;color:#0A4F23}
 .aviso-destaque:not(.oculto) ~ .hero-video video{max-height:62vh}
 
+/* Links úteis */
+.uteis{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px;margin-top:40px}
+.util{display:flex;gap:16px;align-items:flex-start;padding:22px;border-radius:var(--raio-p);background:var(--cartao);border:1.5px solid var(--linha);text-decoration:none;color:var(--tinta);transition:border-color .15s ease,transform .15s ease}
+.util:hover{border-color:var(--verde);transform:translateY(-2px)}
+.util-icone{font-size:2rem;line-height:1;flex:none}
+.util b{display:block;font-family:var(--display);font-size:1.2rem;color:var(--verde);line-height:1.15;margin-bottom:4px}
+.util span.t{color:var(--tinta-suave);font-size:.98rem}
+.util.destaque{background:var(--sol);border-color:transparent;color:#16301E}
+.util.destaque b{color:#0A4F23}
+.util.destaque span.t{color:#16301E}
+
+/* Trabalhe conosco */
+.trabalhe{display:grid;grid-template-columns:.8fr 1.2fr;gap:48px;align-items:start}
+.form-cv{background:var(--cartao);border:1px solid var(--linha);border-radius:var(--raio-g);padding:28px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.form-cv .inteiro{grid-column:1 / -1}
+.form-cv label{display:flex;flex-direction:column;gap:6px;font-weight:700;font-size:.95rem}
+.form-cv input[type=text],.form-cv input[type=email],.form-cv input[type=tel],.form-cv select,.form-cv textarea{font:inherit;font-weight:400;color:var(--tinta);background:var(--fundo);border:1.5px solid var(--linha);border-radius:10px;padding:11px 13px;width:100%}
+.form-cv textarea{min-height:170px;resize:vertical}
+.form-cv input:focus,.form-cv select:focus,.form-cv textarea:focus{outline:none;border-color:var(--verde);box-shadow:0 0 0 3px color-mix(in srgb,var(--verde) 20%,transparent)}
+.form-cv .ajuda{font-weight:400;color:var(--tinta-suave);font-size:.85rem}
+.form-cv .consent{flex-direction:row;align-items:flex-start;gap:10px;font-weight:400}
+.form-cv .consent input{width:20px;height:20px;margin-top:2px;accent-color:var(--verde);flex:none}
+.form-cv .mel{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+.form-cv .btn{justify-self:start;border:0}
+.form-cv .msg{grid-column:1 / -1;padding:12px 14px;border-radius:10px;font-weight:700}
+.form-cv .msg.ok{background:var(--fundo-alt);color:var(--verde)}
+.form-cv .msg.erro{background:#FDECEA;color:#B42318}
+@media (max-width:860px){.trabalhe{grid-template-columns:1fr;gap:24px}.form-cv{grid-template-columns:1fr;padding:20px}}
+.rodape-links{margin-top:6px}
+
 </style>
 <style id="cores-personalizadas"></style>
 </head>
@@ -318,6 +350,7 @@ a.logo-parc:hover{transform:translateY(-3px)}
       <a href="#historia" data-sec="historia">Nossa história</a>
       <a href="#galeria" data-sec="galeria">Fotos</a>
       <a href="#familias" data-sec="familias">Famílias</a>
+      <a href="#trabalhe" data-sec="trabalhe" class="so-celular">Trabalhe conosco</a>
       <a href="#contato" data-sec="contato">Contato</a>
       <a class="btn btn-sol js-zap" href="#contato">Agendar visita</a>
     </nav>
@@ -468,6 +501,41 @@ a.logo-parc:hover{transform:translateY(-3px)}
   </div>
 </section>
 
+<section class="sec sec-alt oculto" id="links">
+  <div class="wrap">
+    <h2 id="links-titulo"></h2>
+    <p class="intro" id="links-intro"></p>
+    <div class="uteis" id="lista-links"></div>
+  </div>
+</section>
+
+<section class="sec" id="trabalhe">
+  <div class="wrap trabalhe">
+    <div>
+      <h2 id="tr-titulo">Trabalhe conosco</h2>
+      <p class="intro" id="tr-intro"></p>
+    </div>
+    <form class="form-cv" id="form-cv" novalidate>
+      <label>Nome completo<input type="text" name="nome" autocomplete="name" required maxlength="110"></label>
+      <label>WhatsApp<input type="tel" name="telefone" autocomplete="tel" inputmode="tel" required maxlength="30" placeholder="(71) 99999-9999"></label>
+      <label>E-mail<input type="email" name="email" autocomplete="email" maxlength="150"></label>
+      <label>Vaga de interesse<select name="cargo" id="tr-cargos"></select></label>
+      <label class="inteiro">Seu currículo
+        <span class="ajuda">Abra seu currículo, copie o texto (Ctrl+A e Ctrl+C) e cole aqui: formação, experiências e cursos.</span>
+        <textarea name="texto" maxlength="19000"></textarea>
+      </label>
+      <label class="inteiro">Currículo em PDF (opcional)
+        <span class="ajuda">Até 700 KB. Se o arquivo for maior, cole o texto no campo acima.</span>
+        <input type="file" name="pdf" accept="application/pdf">
+      </label>
+      <label class="mel" aria-hidden="true">Não preencha<input type="text" name="site" tabindex="-1" autocomplete="off"></label>
+      <label class="consent inteiro"><input type="checkbox" name="consentimento" required> <span>Autorizo a Creche Escola Arco-Íris a guardar meus dados para processos seletivos.</span></label>
+      <button class="btn btn-sol" type="submit" id="cv-enviar">Enviar currículo</button>
+      <div class="msg oculto" id="cv-msg" role="status" aria-live="polite"></div>
+    </form>
+  </div>
+</section>
+
 <section class="sec" id="contato">
   <div class="wrap contato">
     <div>
@@ -514,7 +582,7 @@ a.logo-parc:hover{transform:translateY(-3px)}
       <img class="js-logo" src="logo.png" alt="" width="54" height="54">
       <span><b data-c="escola.nome"></b><small id="rodape-sub"></small></span>
     </a>
-    <p><span id="rodape-end"></span><br>© <span id="ano"></span> <span data-c="escola.nome"></span></p>
+    <p><span id="rodape-end"></span><br>© <span id="ano"></span> <span data-c="escola.nome"></span><br><a class="rodape-links" href="#trabalhe" data-sec="trabalhe">Trabalhe conosco</a></p>
   </div>
 </footer>
 
@@ -536,11 +604,12 @@ a.logo-parc:hover{transform:translateY(-3px)}
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="comum.js?v=8"></script>
+<script src="comum.js?v=9"></script>
 <script>
 (function(){
   const { padrao, mesclar, esc, linkWhats, COL } = CEA;
   const COL_LOGOS = COL.logos || "site-logos";
+  const COL_CV = COL.curriculos || "site-curriculos";
   const $ = s => document.querySelector(s), $$ = s => document.querySelectorAll(s);
   const pegar = (o, caminho) => caminho.split(".").reduce((a, k) => a == null ? a : a[k], o);
   const CACHE = "cea-site-conteudo";
@@ -624,6 +693,35 @@ a.logo-parc:hover{transform:translateY(-3px)}
     if (ex.titulo) $("#extraclasse h2").textContent = ex.titulo;
     if (ex.intro !== undefined) $("#extraclasse .intro").textContent = ex.intro;
 
+    // links úteis
+    const lk = c.links || padrao.links || { titulo: "Links úteis", intro: "", itens: [] };
+    const lkItens = (lk.itens || []).map(x => {
+      if (!x || !x.titulo) return null;
+      const num = soNumZap(x.whatsapp);
+      if (num.length >= 12) return { ...x, href: "https://wa.me/" + num + "?text=" + encodeURIComponent(x.mensagem || ""), zap: num };
+      if (/^https?:\/\//.test(x.link || "")) return { ...x, href: x.link };
+      return null;
+    }).filter(Boolean);
+    $("#lista-links").innerHTML = lkItens.map(x =>
+      `<a class="util${x.destaque ? " destaque" : ""}" href="${esc(x.href)}" ${x.zap ? `data-zap="${x.zap}"` : 'target="_blank" rel="noopener"'}>
+        ${x.icone ? `<span class="util-icone" aria-hidden="true">${esc(x.icone)}</span>` : ""}
+        <span><b>${esc(x.titulo)}</b>${x.texto ? `<span class="t">${esc(x.texto)}</span>` : ""}</span>
+      </a>`).join("");
+    $("#links-titulo").textContent = lk.titulo || "";
+    $("#links-intro").textContent = lk.intro || "";
+    $("#links").classList.toggle("oculto", !lkItens.length || c.secoes.links === false);
+
+    // trabalhe conosco
+    const tr = c.trabalhe || padrao.trabalhe || { titulo: "Trabalhe conosco", intro: "", cargos: [] };
+    $("#tr-titulo").textContent = tr.titulo || "Trabalhe conosco";
+    $("#tr-intro").textContent = tr.intro || "";
+    const selCargo = $("#tr-cargos"), atualCargo = selCargo.value;
+    selCargo.innerHTML = '<option value="">Selecione</option>' + (tr.cargos || []).map(x => `<option>${esc(x)}</option>`).join("");
+    if (atualCargo) selCargo.value = atualCargo;
+    const mostraTr = c.secoes.trabalhe !== false;
+    $("#trabalhe").classList.toggle("oculto", !mostraTr);
+    $$('[data-sec="trabalhe"]').forEach(a => a.classList.toggle("oculto", !mostraTr));
+
     $("#lista-historia").innerHTML = c.historia.itens.map(h =>
       `<li><span class="ano">${esc(h.marca)}</span><div><h3>${esc(h.titulo)}</h3><p>${esc(h.texto)}</p></div></li>`).join("");
 
@@ -680,7 +778,7 @@ a.logo-parc:hover{transform:translateY(-3px)}
     // seções visíveis
     const mapaSec = { etapas: "#etapas", parceiros: "#diferenciais", historia: "#historia", familias: "#familias", instagram: "#instagram", contato: "#contato" };
     Object.entries(mapaSec).forEach(([k, sel]) => $(sel).classList.toggle("oculto", c.secoes[k] === false));
-    $$("[data-sec]").forEach(a => { if (a.dataset.sec !== "extras") a.classList.toggle("oculto", c.secoes[a.dataset.sec] === false || (a.dataset.sec === "galeria" && !temFotos)); });
+    $$("[data-sec]").forEach(a => { if (a.dataset.sec !== "extras" && a.dataset.sec !== "trabalhe") a.classList.toggle("oculto", c.secoes[a.dataset.sec] === false || (a.dataset.sec === "galeria" && !temFotos)); });
 
     // cores (só no modo claro; o escuro mantém tons próprios)
     const hex = (x, d) => /^#[0-9a-f]{6}$/i.test(x || "") ? x : d;
@@ -779,6 +877,43 @@ a.logo-parc:hover{transform:translateY(-3px)}
     if (!a || !a.dataset.zap || ehCelular) return; // no celular, segue o link normal
     e.preventDefault();
     window.open(a.href, "_blank", "noopener");
+  });
+
+  // Envio de currículo
+  const formCv = $("#form-cv");
+  const msgCv = t => { const m = $("#cv-msg"); m.textContent = t.texto; m.className = "msg " + t.tipo; };
+  formCv.addEventListener("submit", async e => {
+    e.preventDefault();
+    const f = formCv.elements;
+    if (f.site.value) { msgCv({ tipo: "ok", texto: "Currículo enviado. Obrigado!" }); formCv.reset(); return; }
+    const nome = f.nome.value.trim(), tel = f.telefone.value.trim(), email = f.email.value.trim();
+    const texto = f.texto.value.trim(), arq = f.pdf.files[0];
+    if (nome.length < 3) return msgCv({ tipo: "erro", texto: "Digite seu nome completo." });
+    if (tel.replace(/\D/g, "").length < 10) return msgCv({ tipo: "erro", texto: "Digite um WhatsApp com DDD." });
+    if (texto.length < 30 && !arq) return msgCv({ tipo: "erro", texto: "Cole o texto do seu currículo ou anexe o PDF." });
+    if (!f.consentimento.checked) return msgCv({ tipo: "erro", texto: "Marque a autorização para guardarmos seus dados." });
+    let pdf = "", pdfNome = "";
+    if (arq) {
+      if (arq.type !== "application/pdf") return msgCv({ tipo: "erro", texto: "O arquivo precisa ser PDF." });
+      if (arq.size > 700 * 1024) return msgCv({ tipo: "erro", texto: "O PDF tem mais de 700 KB. Cole o texto do currículo no campo acima ou envie um PDF menor." });
+      pdf = await new Promise((ok, falha) => { const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = falha; r.readAsDataURL(arq); });
+      pdfNome = arq.name.slice(0, 180);
+    }
+    if (!db) return msgCv({ tipo: "erro", texto: "Não foi possível enviar agora. Tente pelo WhatsApp." });
+    const bt = $("#cv-enviar"); bt.disabled = true; bt.textContent = "Enviando…";
+    try {
+      await db.collection(COL_CV).add({
+        nome: nome.slice(0, 110), telefone: tel.slice(0, 30), email: email.slice(0, 150),
+        cargo: f.cargo.value.slice(0, 70), texto: texto.slice(0, 19000), pdf, pdfNome,
+        consentimento: true, lido: false, criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      formCv.reset();
+      msgCv({ tipo: "ok", texto: "Currículo enviado! Obrigado pelo interesse. Se houver uma vaga para o seu perfil, entraremos em contato." });
+    } catch (err) {
+      msgCv({ tipo: "erro", texto: "Não foi possível enviar agora. Tente de novo em alguns minutos." });
+      console.warn(err);
+    }
+    bt.disabled = false; bt.textContent = "Enviar currículo";
   });
 
   // menu no celular

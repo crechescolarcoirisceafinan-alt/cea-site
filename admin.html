@@ -187,11 +187,12 @@ textarea{min-height:96px;resize:vertical}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="comum.js?v=8"></script>
+<script src="comum.js?v=9"></script>
 <script>
 (function(){
 const { padrao, mesclar, esc, COL } = CEA;
 const COL_LOGOS = COL.logos || "site-logos";
+const COL_CV = COL.curriculos || "site-curriculos";
 const db = CEA.iniciarFirebase();
 if (!db) {
   document.body.innerHTML = '<div class="login"><form><h1>Falta configurar o Firebase</h1><p>Abra o arquivo comum.js e cole a configuração do projeto Firebase do site no lugar de "COLE_AQUI".</p></form></div>';
@@ -279,6 +280,24 @@ const ABAS = [
   { id:"logos", nome:"Logos parceiros", desc:"Logos que aparecem no rodapé do site. Prefira imagens com fundo transparente (PNG). Elas são reduzidas automaticamente.", campos:[
     { k:"logos.titulo", r:"Título da faixa de logos" }
   ]},
+  { id:"links", nome:"Links úteis", desc:"Atalhos que aparecem antes do Contato. Cada atalho abre um link OU um WhatsApp (se preencher os dois, vale o WhatsApp). Atalhos sem link e sem WhatsApp ficam escondidos.", campos:[
+    { k:"links.titulo", r:"Título da seção" },
+    { k:"links.intro", r:"Texto de introdução", t:"textarea" },
+    { k:"links.itens", r:"Atalho", t:"rep", novo:{ icone:"", titulo:"", texto:"", link:"", whatsapp:"", mensagem:"", destaque:false }, sub:[
+      { k:"titulo", r:"Título" },
+      { k:"icone", r:"Ícone (emoji, opcional)", a:"Ex.: 👟 📝 👩‍🏫 ⭐ 🧠" },
+      { k:"texto", r:"Descrição curta", t:"textarea" },
+      { k:"link", r:"Link", t:"url", a:"Ex.: link do cadastro da Prefeitura ou da avaliação no Google." },
+      { k:"whatsapp", r:"Ou um WhatsApp (só números)", a:"Ex.: 5571999999999. Pode ser o mesmo número principal da escola." },
+      { k:"mensagem", r:"Mensagem que já vem escrita no WhatsApp" },
+      { k:"destaque", r:"Destaque (cartão amarelo)", t:"check" }
+    ]}
+  ]},
+  { id:"trabalhe", nome:"Trabalhe conosco", desc:"Textos do formulário e os currículos recebidos. Só quem está na lista de editores consegue ver os currículos.", campos:[
+    { k:"trabalhe.titulo", r:"Título da seção" },
+    { k:"trabalhe.intro", r:"Texto de introdução", t:"textarea" },
+    { k:"trabalhe.cargos", r:"Vagas que aparecem na lista", t:"lista", a:"Separe por vírgula. Ex.: Professor(a), Auxiliar de classe, Berçarista" }
+  ]},
   { id:"aviso", nome:"Aviso", desc:"Uma faixa no topo do site para recados importantes.", campos:[
     { k:"aviso.ativo", r:"Mostrar aviso no site", t:"check" },
     { k:"aviso.texto", r:"Texto do aviso" },
@@ -298,6 +317,8 @@ const ABAS = [
     { k:"secoes.contato", r:"Contato e mapa", t:"check" },
     { k:"secoes.logos", r:"Logos dos parceiros no rodapé", t:"check" },
     { k:"secoes.extras", r:"Aulas extraclasse", t:"check" },
+    { k:"secoes.links", r:"Links úteis", t:"check" },
+    { k:"secoes.trabalhe", r:"Trabalhe conosco", t:"check" },
     { k:"cores.verde", r:"Cor principal", t:"cor" },
     { k:"cores.sol", r:"Cor de destaque", t:"cor" }
   ]}
@@ -380,6 +401,7 @@ function mostrar(id){
   if (id === "fotos") return montarFotos(p);
   aba.campos.forEach(c => p.appendChild(criarCampo(c, dados, c.k)));
   if (id === "logos") montarLogos(p);
+  if (id === "trabalhe") montarCurriculos(p);
 }
 
 let seq = 0;
@@ -712,6 +734,60 @@ document.addEventListener("click", async e => {
     } catch(err){ aviso("Não foi possível mudar a ordem: " + err.message); }
   }
 }, true);
+/* ---------- Currículos recebidos ---------- */
+let cvs = [];
+async function montarCurriculos(p){
+  p.insertAdjacentHTML("beforeend", `<h2 style="font-size:1.3rem;margin:26px 0 6px">Currículos recebidos</h2>
+    <p class="desc" style="color:var(--suave);margin:0 0 14px">Os mais novos aparecem primeiro. Exclua os que não forem mais necessários: são dados pessoais dos candidatos.</p>
+    <div id="lista-cv"><p class="vazio">Carregando…</p></div>`);
+  try {
+    const snap = await db.collection(COL_CV).orderBy("criadoEm", "desc").limit(200).get();
+    cvs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch(e){ cvs = []; $("#lista-cv").innerHTML = `<p class="msg erro">Não consegui carregar: ${esc(e.code === "permission-denied" ? "atualize as regras do Firestore" : e.message)}</p>`; return; }
+  desenharCvs();
+}
+function desenharCvs(){
+  const box = $("#lista-cv"); if (!box) return;
+  if (!cvs.length) { box.innerHTML = `<p class="vazio">Nenhum currículo recebido ainda.</p>`; return; }
+  box.innerHTML = cvs.map(v => {
+    const data = v.criadoEm && v.criadoEm.toDate ? v.criadoEm.toDate().toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" }) : "";
+    let tel = String(v.telefone || "").replace(/\D/g, ""); if (tel.length === 10 || tel.length === 11) tel = "55" + tel;
+    return `<div class="item cv-item" data-id="${v.id}" style="${v.lido ? "" : "border-color:var(--verde)"}">
+      <div class="item-topo">
+        <b>${esc(v.nome)}${v.lido ? "" : ' <span style="font-size:.75rem;background:var(--verde);color:#fff;padding:2px 8px;border-radius:999px;vertical-align:middle">NOVO</span>'}</b>
+        <span style="color:var(--suave);font-size:.88rem">${esc(data)}</span>
+      </div>
+      <p style="margin:0 0 10px"><strong>${esc(v.cargo || "Vaga não informada")}</strong> ·
+        <a href="https://wa.me/${tel}" target="_blank" rel="noopener">${esc(v.telefone)}</a>${v.email ? ` · <a href="mailto:${esc(v.email)}">${esc(v.email)}</a>` : ""}</p>
+      ${v.texto ? `<details style="margin-bottom:12px"><summary style="cursor:pointer;font-weight:700">Ver currículo</summary><div style="white-space:pre-wrap;margin-top:8px;padding:12px;background:var(--cartao);border-radius:10px;border:1px solid var(--linha)">${esc(v.texto)}</div></details>` : ""}
+      <div class="linha" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+        ${v.pdf ? `<button class="btn btn-pequeno" type="button" data-cv-pdf>Baixar PDF</button>` : ""}
+        <button class="btn btn-pequeno" type="button" data-cv-lido>${v.lido ? "Marcar como novo" : "Marcar como visto"}</button>
+        <button class="btn btn-pequeno btn-perigo" type="button" data-cv-x style="margin-left:auto">Excluir</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+document.addEventListener("click", async e => {
+  const card = e.target.closest(".cv-item"); if (!card) return;
+  const v = cvs.find(x => x.id === card.dataset.id); if (!v) return;
+  if (e.target.closest("[data-cv-pdf]")) {
+    if (!/^data:application\/pdf;base64,/.test(v.pdf || "")) return aviso("Arquivo inválido.");
+    const blob = await (await fetch(v.pdf)).blob();
+    const url = URL.createObjectURL(blob), link = document.createElement("a");
+    link.href = url; link.download = (v.pdfNome || ("curriculo-" + v.nome)).replace(/[\\/:*?"<>|]/g, "") + (/\.pdf$/i.test(v.pdfNome || "") ? "" : ".pdf");
+    document.body.appendChild(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 4000);
+  }
+  if (e.target.closest("[data-cv-lido]")) {
+    try { v.lido = !v.lido; await db.collection(COL_CV).doc(v.id).update({ lido: v.lido }); desenharCvs(); }
+    catch(err){ aviso("Não foi possível salvar: " + err.message); }
+  }
+  if (e.target.closest("[data-cv-x]")) {
+    if (!confirm(`Excluir o currículo de ${v.nome}? Isso não pode ser desfeito.`)) return;
+    try { await db.collection(COL_CV).doc(v.id).delete(); cvs = cvs.filter(x => x.id !== v.id); desenharCvs(); aviso("Currículo excluído."); }
+    catch(err){ aviso("Não foi possível excluir: " + err.message); }
+  }
+});
 })();
 </script>
 </body>
