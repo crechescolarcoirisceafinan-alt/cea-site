@@ -264,9 +264,9 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .parc-rodape .wrap{display:block}
 .parc-rodape h2{font-size:1.15rem;color:#FFFFFF;font-weight:700;margin-bottom:18px;text-align:center}
 .logos-parc{display:flex;flex-wrap:wrap;justify-content:center;gap:14px}
-.logo-parc{display:grid;place-items:center;background:#FFFFFF;border-radius:14px;padding:10px 16px;width:150px;height:84px;transition:transform .15s ease}
+.logo-parc{display:flex;align-items:center;justify-content:center;background:#FFFFFF;border-radius:14px;padding:12px 16px;width:150px;height:84px;overflow:hidden;transition:transform .15s ease}
 a.logo-parc:hover{transform:translateY(-3px)}
-.logo-parc img{max-width:100%;max-height:100%;object-fit:contain}
+.logo-parc img{display:block;width:auto;height:auto;max-width:100%;max-height:100%;min-width:0;min-height:0;object-fit:contain;border-radius:6px}
 @media (max-width:560px){.logo-parc{width:calc(50% - 7px);height:76px}}
 
 </style>
