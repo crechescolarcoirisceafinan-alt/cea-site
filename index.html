@@ -662,18 +662,24 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
     visor.addEventListener("keydown", e => { if (e.key === "ArrowLeft") abrir(atual - 1); if (e.key === "ArrowRight") abrir(atual + 1); });
   }
 
-  // Abrir WhatsApp: no celular vai direto para o aplicativo
-  const ehCelular = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
+  // Abrir WhatsApp
+  // Android: link "intent" (o Chrome abre o app; se não houver app, abre a página do WhatsApp)
+  // iPhone: link wa.me na mesma aba (o iOS entrega direto para o app)
+  // Computador: WhatsApp Web em nova aba
+  const ua = navigator.userAgent;
+  const ehAndroid = /Android/i.test(ua);
+  const ehIOS = /iPhone|iPad|iPod/i.test(ua) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(ua));
   document.addEventListener("click", e => {
     const a = e.target.closest("a[data-zap]");
     if (!a || !a.dataset.zap) return;
     e.preventDefault();
     const n = a.dataset.zap, msg = encodeURIComponent((window.__conteudo || padrao).contato.mensagemWhatsapp || "");
     const web = "https://wa.me/" + n + "?text=" + msg;
-    if (ehCelular) {
-      location.href = "whatsapp://send?phone=" + n + "&text=" + msg;
-      // se o aplicativo não abrir (não instalado), cai no link normal
-      setTimeout(() => { if (!document.hidden) location.href = web; }, 1500);
+    if (ehAndroid) {
+      location.href = "intent://send/?phone=" + n + "&text=" + msg +
+        "#Intent;scheme=whatsapp;S.browser_fallback_url=" + encodeURIComponent(web) + ";end";
+    } else if (ehIOS) {
+      location.href = web;
     } else {
       window.open(web, "_blank", "noopener");
     }
