@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="carregando">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -380,6 +380,11 @@ a.logo-parc:hover{transform:translateY(-3px)}
   .menu a[data-sec="galeria"],.menu a[data-sec="parceiros"]{display:none}
 }
 
+/* Enquanto carrega: esconde o conteúdo do início (aparece sozinho em 4s se algo falhar) */
+.carregando .hero .wrap,.carregando .faixa .wrap{visibility:hidden;animation:revelar 0s 4s forwards}
+@keyframes revelar{to{visibility:visible}}
+.carregando .hero{min-height:min(76vh,620px)}
+
 </style>
 <style id="cores-personalizadas"></style>
 </head>
@@ -400,10 +405,10 @@ a.logo-parc:hover{transform:translateY(-3px)}
     <nav class="menu" id="menu" aria-label="Principal">
       <a href="#etapas" data-sec="etapas">Etapas</a>
       <a href="#diferenciais" data-sec="parceiros">Diferenciais</a>
-      <a href="#extraclasse" data-sec="extras">Extraclasse</a>
+      <a href="#extraclasse" data-sec="extras" class="oculto">Extraclasse</a>
       <a href="#historia" data-sec="historia">Nossa história</a>
-      <a href="#galeria" data-sec="galeria">Fotos</a>
-      <a href="#videos" data-sec="videos">Vídeos</a>
+      <a href="#galeria" data-sec="galeria" class="oculto">Fotos</a>
+      <a href="#videos" data-sec="videos" class="oculto">Vídeos</a>
       <a href="#familias" data-sec="familias">Famílias</a>
       <a href="#trabalhe" data-sec="trabalhe" class="so-celular">Trabalhe conosco</a>
       <a href="#contato" data-sec="contato">Contato</a>
@@ -444,7 +449,7 @@ a.logo-parc:hover{transform:translateY(-3px)}
       <span class="ad-texto" id="ad-texto"></span>
       <span class="ad-botao" id="ad-botao"></span>
     </a>
-    <div class="sol" id="sol" role="img">
+    <div class="sol oculto" id="sol" role="img">
       <svg class="raios" viewBox="0 0 200 200" aria-hidden="true">
         <g style="fill:var(--sol)">
           <g id="r"><path d="M100 2 L108 24 L92 24 Z"/></g>
@@ -457,7 +462,7 @@ a.logo-parc:hover{transform:translateY(-3px)}
       </svg>
       <div class="disco"><div><b id="anos"></b><span id="anos-texto"></span></div></div>
     </div>
-    <div class="arco" id="arco" role="img">
+    <div class="arco oculto" id="arco" role="img">
       <svg viewBox="0 0 400 270" aria-hidden="true">
         <g fill="none" stroke-width="11.6"><path class="faixa-arco" style="animation-delay:0.00s" pathLength="100" d="M19.5 250 A180.5 180.5 0 0 1 380.5 250" stroke="#E53935"/><path class="faixa-arco" style="animation-delay:0.09s" pathLength="100" d="M30.5 250 A169.5 169.5 0 0 1 369.5 250" stroke="#FB8C00"/><path class="faixa-arco" style="animation-delay:0.18s" pathLength="100" d="M41.5 250 A158.5 158.5 0 0 1 358.5 250" stroke="#FDD835"/><path class="faixa-arco" style="animation-delay:0.27s" pathLength="100" d="M52.5 250 A147.5 147.5 0 0 1 347.5 250" stroke="#43A047"/><path class="faixa-arco" style="animation-delay:0.36s" pathLength="100" d="M63.5 250 A136.5 136.5 0 0 1 336.5 250" stroke="#1E88E5"/><path class="faixa-arco" style="animation-delay:0.45s" pathLength="100" d="M74.5 250 A125.5 125.5 0 0 1 325.5 250" stroke="#3949AB"/><path class="faixa-arco" style="animation-delay:0.54s" pathLength="100" d="M85.5 250 A114.5 114.5 0 0 1 314.5 250" stroke="#8E24AA"/></g>
         <g class="solzinho"><circle cx="336" cy="52" r="20" fill="#FDD835"/><g stroke="#FDD835" stroke-width="5" stroke-linecap="round"><line x1="366.0" y1="52.0" x2="376.0" y2="52.0"/><line x1="357.2" y1="73.2" x2="364.3" y2="80.3"/><line x1="336.0" y1="82.0" x2="336.0" y2="92.0"/><line x1="314.8" y1="73.2" x2="307.7" y2="80.3"/><line x1="306.0" y1="52.0" x2="296.0" y2="52.0"/><line x1="314.8" y1="30.8" x2="307.7" y2="23.7"/><line x1="336.0" y1="22.0" x2="336.0" y2="12.0"/><line x1="357.2" y1="30.8" x2="364.3" y2="23.7"/></g></g>
@@ -915,6 +920,7 @@ a.logo-parc:hover{transform:translateY(-3px)}
 
     if (window.__temLogos !== undefined) $("#parc-rodape").classList.toggle("oculto", !window.__temLogos || c.secoes.logos === false);
     window.__conteudo = c;
+    document.documentElement.classList.remove("carregando");
   }
 
   // 1) mostra na hora: último conteúdo salvo no navegador, ou o padrão
