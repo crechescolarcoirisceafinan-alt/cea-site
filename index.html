@@ -346,6 +346,11 @@ a.logo-parc:hover{transform:translateY(-3px)}
   .hero-video.yt.vertical{height:min(50vh,430px)}
 }
 
+/* Botão de som do vídeo */
+.som-btn{font-family:var(--display);font-weight:700;font-size:1rem;color:#16301E;background:#FFFFFF;border:0;border-radius:999px;padding:10px 20px;min-height:44px;cursor:pointer;box-shadow:0 6px 16px rgba(0,0,0,.2);transition:transform .15s ease}
+.som-btn:hover{transform:translateY(-2px)}
+.som-btn[aria-pressed="true"]{background:var(--sol)}
+
 </style>
 <style id="cores-personalizadas"></style>
 </head>
@@ -433,6 +438,7 @@ a.logo-parc:hover{transform:translateY(-3px)}
     </div>
     <div class="hero-img oculto" id="hero-img"><img alt="" id="hero-img-el"></div>
     <div class="hero-img hero-video oculto" id="hero-video"></div>
+    <button type="button" class="som-btn oculto" id="som-btn" aria-pressed="false">🔊 Ativar som</button>
     </div>
   </div>
 </section>
@@ -667,11 +673,12 @@ a.logo-parc:hover{transform:translateY(-3px)}
     const boxV = $("#hero-video");
     if (visual === "video" && boxV.dataset.src !== vid) {
       boxV.dataset.src = vid;
+      $("#som-btn").setAttribute("aria-pressed", "false"); $("#som-btn").textContent = "🔊 Ativar som";
       const calmo = matchMedia("(prefers-reduced-motion: reduce)").matches;
       if (yt) {
         const id = yt[1];
         const origem = /^https?:/.test(location.origin) ? "&origin=" + encodeURIComponent(location.origin) : "";
-        boxV.innerHTML = `<iframe src="https://www.youtube.com/embed/${id}?autoplay=${calmo ? 0 : 1}&mute=1&loop=1&playlist=${id}&controls=0&rel=0&playsinline=1&enablejsapi=0${origem}" title="${esc(c.hero.imagemAlt || "Vídeo da escola")}" referrerpolicy="strict-origin-when-cross-origin" allow="autoplay; encrypted-media; picture-in-picture; web-share" allowfullscreen></iframe>`;
+        boxV.innerHTML = `<iframe src="https://www.youtube.com/embed/${id}?autoplay=${calmo ? 0 : 1}&mute=1&loop=1&playlist=${id}&controls=0&rel=0&playsinline=1&enablejsapi=1${origem}" title="${esc(c.hero.imagemAlt || "Vídeo da escola")}" referrerpolicy="strict-origin-when-cross-origin" allow="autoplay; encrypted-media; picture-in-picture; web-share" allowfullscreen></iframe>`;
       } else {
         const poster = imgOk ? ` poster="${c.hero.imagem}"` : "";
         boxV.innerHTML = `<video src="${esc(vid)}"${poster} muted loop playsinline preload="metadata" ${calmo ? "controls" : "autoplay"} aria-label="${esc(c.hero.imagemAlt || "Vídeo da escola")}"></video>`;
@@ -679,6 +686,7 @@ a.logo-parc:hover{transform:translateY(-3px)}
     }
     if (visual !== "video" && boxV.dataset.src) { boxV.innerHTML = ""; boxV.dataset.src = ""; }
     boxV.classList.toggle("oculto", visual !== "video");
+    $("#som-btn").classList.toggle("oculto", visual !== "video");
     boxV.classList.toggle("yt", !!yt);
     // vertical: Shorts do YouTube ou MP4 mais alto que largo
     if (yt) boxV.classList.toggle("vertical", /\/shorts\//.test(vid));
@@ -955,6 +963,19 @@ a.logo-parc:hover{transform:translateY(-3px)}
       console.warn(err);
     }
     bt.disabled = false; bt.textContent = "Enviar currículo";
+  });
+
+  // Botão de som do vídeo do início
+  $("#som-btn").addEventListener("click", () => {
+    const bt = $("#som-btn"), ligar = bt.getAttribute("aria-pressed") !== "true";
+    const v = document.querySelector("#hero-video video"), f = document.querySelector("#hero-video iframe");
+    if (v) { v.muted = !ligar; if (ligar) { v.volume = 1; v.play().catch(() => {}); } }
+    if (f && f.contentWindow) {
+      const cmd = (func, args = []) => f.contentWindow.postMessage(JSON.stringify({ event: "command", func, args }), "*");
+      if (ligar) { cmd("unMute"); cmd("setVolume", [100]); cmd("playVideo"); } else cmd("mute");
+    }
+    bt.setAttribute("aria-pressed", String(ligar));
+    bt.textContent = ligar ? "🔇 Desativar som" : "🔊 Ativar som";
   });
 
   // menu no celular
