@@ -187,7 +187,7 @@ textarea{min-height:96px;resize:vertical}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="comum.js?v=11"></script>
+<script src="comum.js?v=12"></script>
 <script>
 (function(){
 const { padrao, mesclar, esc, COL } = CEA;
@@ -276,6 +276,15 @@ const ABAS = [
     { k:"familias.titulo", r:"Título da seção Para as famílias" },
     { k:"familias.intro", r:"Texto da seção Para as famílias", t:"textarea" }
   ]},
+  { id:"videos", nome:"Vídeos", desc:"Vídeos institucionais, separados do vídeo da capa. A seção só aparece no site quando houver pelo menos um vídeo.", campos:[
+    { k:"videos.titulo", r:"Título da seção" },
+    { k:"videos.intro", r:"Texto de introdução", t:"textarea" },
+    { k:"videos.itens", r:"Vídeo", t:"rep", novo:{ titulo:"", link:"", texto:"" }, sub:[
+      { k:"titulo", r:"Título", a:"Ex.: Nossa história, Festa junina 2026" },
+      { k:"link", r:"Link do vídeo", a:"Link do YouTube (normal ou Shorts), ou videos/nome.mp4 para um arquivo da pasta videos do site." },
+      { k:"texto", r:"Descrição (opcional)", t:"textarea" }
+    ]}
+  ]},
   { id:"fotos", nome:"Fotos", desc:"Fotos da galeria. Elas são reduzidas automaticamente antes de enviar. Só publique fotos de crianças com autorização de uso de imagem dos responsáveis." },
   { id:"logos", nome:"Logos parceiros", desc:"Logos que aparecem no rodapé do site. Prefira imagens com fundo transparente (PNG). Elas são reduzidas automaticamente.", campos:[
     { k:"logos.titulo", r:"Título da faixa de logos" }
@@ -319,6 +328,7 @@ const ABAS = [
     { k:"secoes.extras", r:"Aulas extraclasse", t:"check" },
     { k:"secoes.links", r:"Links úteis", t:"check" },
     { k:"secoes.trabalhe", r:"Trabalhe conosco", t:"check" },
+    { k:"secoes.videos", r:"Vídeos", t:"check" },
     { k:"cores.verde", r:"Cor principal", t:"cor" },
     { k:"cores.sol", r:"Cor de destaque", t:"cor" }
   ]}

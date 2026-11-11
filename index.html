@@ -96,7 +96,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .abrir-menu{display:none;margin-left:auto;background:none;border:2px solid var(--linha);border-radius:12px;width:48px;height:48px;color:var(--tinta);cursor:pointer}
 .abrir-menu svg{width:24px;height:24px}
 .menu .so-celular{display:none}
-@media (max-width:960px){
+@media (max-width:1180px){
   .abrir-menu{display:grid;place-items:center}
   .menu{position:absolute;top:100%;left:0;right:0;flex-direction:column;align-items:stretch;background:var(--fundo);border-bottom:1px solid var(--linha);padding:12px 20px 20px;display:none}
   .menu.aberto{display:flex}
@@ -351,6 +351,35 @@ a.logo-parc:hover{transform:translateY(-3px)}
 .som-btn:hover{transform:translateY(-2px)}
 .som-btn[aria-pressed="true"]{background:var(--sol)}
 
+/* Vídeos institucionais */
+.sec-escura{background:var(--verde-escuro);color:#FFFFFF}
+.sec-escura h2{color:#FFFFFF}
+.sec-escura .intro{color:rgba(255,255,255,.82)}
+.videos{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:24px;margin-top:40px;align-items:start}
+.vid h3{font-size:1.2rem;margin-top:14px;color:#FFFFFF}
+.vid p{color:rgba(255,255,255,.8);margin-top:4px;font-size:.98rem}
+.vid-quadro{position:relative;aspect-ratio:16/9;border-radius:var(--raio-p);overflow:hidden;background:#000;box-shadow:0 10px 26px rgba(0,0,0,.3)}
+.vid.vertical .vid-quadro{aspect-ratio:9/16;max-height:560px;margin-inline:auto}
+.vid-quadro video,.vid-quadro iframe{position:absolute;inset:0;width:100%;height:100%;border:0;object-fit:contain;background:#000}
+.vid-capa{all:unset;cursor:pointer;position:absolute;inset:0;display:block}
+.vid-capa:focus-visible{outline:3px solid var(--sol);outline-offset:-3px}
+.vid-capa img{width:100%;height:100%;object-fit:cover;transition:transform .3s ease}
+.vid-capa:hover img{transform:scale(1.04)}
+.vid-play{position:absolute;left:50%;top:50%;width:68px;height:68px;margin:-34px 0 0 -34px;border-radius:50%;background:var(--sol);box-shadow:0 6px 18px rgba(0,0,0,.35)}
+.vid-play::after{content:"";position:absolute;left:27px;top:21px;border-style:solid;border-width:13px 0 13px 21px;border-color:transparent transparent transparent #0A4F23}
+
+/* Menu compacto: nunca quebra linha */
+.menu a,.menu .btn,.marca b,.marca small{white-space:nowrap}
+@media (min-width:961px) and (max-width:1340px){
+  .menu{gap:0}
+  .menu a{padding:10px 8px;font-size:.93rem}
+  .menu .btn{padding:10px 16px;margin-left:6px}
+  .marca small{display:none}
+}
+@media (min-width:961px) and (max-width:1120px){
+  .menu a[data-sec="galeria"],.menu a[data-sec="parceiros"]{display:none}
+}
+
 </style>
 <style id="cores-personalizadas"></style>
 </head>
@@ -374,6 +403,7 @@ a.logo-parc:hover{transform:translateY(-3px)}
       <a href="#extraclasse" data-sec="extras">Extraclasse</a>
       <a href="#historia" data-sec="historia">Nossa história</a>
       <a href="#galeria" data-sec="galeria">Fotos</a>
+      <a href="#videos" data-sec="videos">Vídeos</a>
       <a href="#familias" data-sec="familias">Famílias</a>
       <a href="#trabalhe" data-sec="trabalhe" class="so-celular">Trabalhe conosco</a>
       <a href="#contato" data-sec="contato">Contato</a>
@@ -491,6 +521,14 @@ a.logo-parc:hover{transform:translateY(-3px)}
     <p class="intro" data-c="galeria.intro"></p>
     <div class="galeria" id="lista-fotos"></div>
     <button class="btn btn-contorno galeria-mais oculto" id="ver-mais" type="button">Ver mais fotos</button>
+  </div>
+</section>
+
+<section class="sec sec-escura oculto" id="videos">
+  <div class="wrap">
+    <h2 id="vid-titulo"></h2>
+    <p class="intro" id="vid-intro"></p>
+    <div class="videos" id="lista-videos"></div>
   </div>
 </section>
 
@@ -637,7 +675,7 @@ a.logo-parc:hover{transform:translateY(-3px)}
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="comum.js?v=11"></script>
+<script src="comum.js?v=12"></script>
 <script>
 (function(){
   const { padrao, mesclar, esc, linkWhats, COL } = CEA;
@@ -765,6 +803,44 @@ a.logo-parc:hover{transform:translateY(-3px)}
     $("#trabalhe").classList.toggle("oculto", !mostraTr);
     $$('[data-sec="trabalhe"]').forEach(a => a.classList.toggle("oculto", !mostraTr));
 
+    // vídeos institucionais
+    const vd = c.videos || padrao.videos || { titulo: "Vídeos", intro: "", itens: [] };
+    const vdItens = (vd.itens || []).map(x => {
+      if (!x) return null;
+      const l = String(x.link || "").trim();
+      const m = l.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/|live\/)|youtu\.be\/)([\w-]{11})/);
+      if (m) return { ...x, tipo: "yt", id: m[1], vertical: /\/shorts\//.test(l) };
+      if (/^(https:\/\/|videos\/)[^"'<>\s]+\.(mp4|webm)(\?[^"'<>\s]*)?$/i.test(l)) return { ...x, tipo: "mp4", src: l };
+      return null;
+    }).filter(Boolean);
+    const chaveVd = JSON.stringify(vdItens.map(x => [x.tipo, x.id || x.src, x.titulo, x.texto]));
+    const listaV = $("#lista-videos");
+    if (listaV.dataset.chave !== chaveVd) {
+      listaV.dataset.chave = chaveVd;
+      listaV.innerHTML = vdItens.map(x => {
+        const midia = x.tipo === "yt"
+          ? `<button type="button" class="vid-capa" data-yt="${x.id}" aria-label="Assistir: ${esc(x.titulo || "vídeo")}">
+               <img src="https://i.ytimg.com/vi/${x.id}/hqdefault.jpg" alt="" loading="lazy">
+               <span class="vid-play" aria-hidden="true"></span>
+             </button>`
+          : `<video src="${esc(x.src)}#t=0.1" controls playsinline preload="metadata"></video>`;
+        return `<article class="vid${x.vertical ? " vertical" : ""}">
+          <div class="vid-quadro">${midia}</div>
+          ${x.titulo ? `<h3>${esc(x.titulo)}</h3>` : ""}
+          ${x.texto ? `<p>${esc(x.texto)}</p>` : ""}
+        </article>`;
+      }).join("");
+      listaV.querySelectorAll("video").forEach(v => v.addEventListener("loadedmetadata", () => {
+        v.closest(".vid").classList.toggle("vertical", v.videoHeight > v.videoWidth);
+        if (v.videoWidth && v.videoHeight) v.closest(".vid-quadro").style.aspectRatio = v.videoWidth + " / " + v.videoHeight;
+      }, { once: true }));
+    }
+    $("#vid-titulo").textContent = vd.titulo || "Vídeos";
+    $("#vid-intro").textContent = vd.intro || "";
+    const mostraVd = vdItens.length > 0 && c.secoes.videos !== false;
+    $("#videos").classList.toggle("oculto", !mostraVd);
+    $$('[data-sec="videos"]').forEach(a => a.classList.toggle("oculto", !mostraVd));
+
     $("#lista-historia").innerHTML = c.historia.itens.map(h =>
       `<li><span class="ano">${esc(h.marca)}</span><div><h3>${esc(h.titulo)}</h3><p>${esc(h.texto)}</p></div></li>`).join("");
 
@@ -827,7 +903,7 @@ a.logo-parc:hover{transform:translateY(-3px)}
     // seções visíveis
     const mapaSec = { etapas: "#etapas", parceiros: "#diferenciais", historia: "#historia", familias: "#familias", instagram: "#instagram", contato: "#contato" };
     Object.entries(mapaSec).forEach(([k, sel]) => $(sel).classList.toggle("oculto", c.secoes[k] === false));
-    $$("[data-sec]").forEach(a => { if (a.dataset.sec !== "extras" && a.dataset.sec !== "trabalhe") a.classList.toggle("oculto", c.secoes[a.dataset.sec] === false || (a.dataset.sec === "galeria" && !temFotos)); });
+    $$("[data-sec]").forEach(a => { if (!["extras", "trabalhe", "videos"].includes(a.dataset.sec)) a.classList.toggle("oculto", c.secoes[a.dataset.sec] === false || (a.dataset.sec === "galeria" && !temFotos)); });
 
     // cores (só no modo claro; o escuro mantém tons próprios)
     const hex = (x, d) => /^#[0-9a-f]{6}$/i.test(x || "") ? x : d;
@@ -963,6 +1039,21 @@ a.logo-parc:hover{transform:translateY(-3px)}
       console.warn(err);
     }
     bt.disabled = false; bt.textContent = "Enviar currículo";
+  });
+
+  // Vídeos do YouTube: carrega o player só ao clicar
+  $("#lista-videos").addEventListener("click", e => {
+    const b = e.target.closest(".vid-capa"); if (!b) return;
+    const id = b.dataset.yt;
+    const origem = /^https?:/.test(location.origin) ? "&origin=" + encodeURIComponent(location.origin) : "";
+    const f = document.createElement("iframe");
+    f.src = `https://www.youtube.com/embed/${id}?autoplay=1&rel=0&playsinline=1${origem}`;
+    f.title = b.getAttribute("aria-label") || "Vídeo";
+    f.setAttribute("referrerpolicy", "strict-origin-when-cross-origin");
+    f.allow = "autoplay; encrypted-media; picture-in-picture; fullscreen";
+    f.allowFullscreen = true;
+    b.replaceWith(f);
+    const capa = document.querySelector("#hero-video video"); if (capa) capa.pause();
   });
 
   // Botão de som do vídeo do início
