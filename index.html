@@ -385,6 +385,21 @@ a.logo-parc:hover{transform:translateY(-3px)}
 @keyframes revelar{to{visibility:visible}}
 .carregando .hero{min-height:min(76vh,620px)}
 
+/* Depoimentos */
+.depos{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;margin-top:40px}
+.depos:empty{display:none}
+.depo{margin:0;background:var(--cartao);border-radius:var(--raio-g);padding:28px 26px 22px;border:1px solid var(--linha);display:flex;flex-direction:column;gap:16px;position:relative}
+.depo::before{content:"“";position:absolute;top:-6px;left:22px;font-family:Georgia,serif;font-size:4.5rem;line-height:1;color:var(--sol)}
+.depo blockquote{margin:14px 0 0;white-space:pre-line;color:var(--tinta);font-size:1.02rem}
+.depo figcaption{margin-top:auto}
+.depo figcaption b{display:block;font-family:var(--display);color:var(--verde);font-size:1.1rem}
+.depo figcaption span{color:var(--tinta-suave);font-size:.92rem}
+.dep-chamada{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px;margin-top:36px;padding:22px 26px;border-radius:var(--raio-p);background:var(--sol-claro)}
+.dep-chamada p{margin:0;font-weight:700;font-size:1.05rem}
+.dep-chamada .btn{border:0}
+.form-dep{margin-top:20px;max-width:760px}
+.form-dep textarea{min-height:0;resize:none;line-height:1.5}
+
 </style>
 <style id="cores-personalizadas"></style>
 </head>
@@ -564,6 +579,30 @@ a.logo-parc:hover{transform:translateY(-3px)}
   </div>
 </section>
 
+<section class="sec sec-alt" id="depoimentos">
+  <div class="wrap">
+    <h2 id="dep-titulo">O que dizem as famílias</h2>
+    <p class="intro" id="dep-intro"></p>
+    <div class="depos" id="lista-depos"></div>
+    <div class="dep-chamada">
+      <p id="dep-chamada"></p>
+      <button type="button" class="btn btn-sol" id="dep-abrir" aria-expanded="false" aria-controls="form-dep">Deixar meu depoimento</button>
+    </div>
+    <form class="form-cv form-dep oculto" id="form-dep" novalidate>
+      <label>Seu nome<input type="text" name="nome" autocomplete="name" required maxlength="60" placeholder="Ex.: Ana Souza"></label>
+      <label>Vínculo com a escola (opcional)<input type="text" name="vinculo" maxlength="60" placeholder="Ex.: Mãe do Pedro, Maternal"></label>
+      <label class="inteiro">Seu depoimento
+        <textarea name="texto" rows="7" maxlength="600" required></textarea>
+        <span class="ajuda" id="dep-cont">Até 7 linhas.</span>
+      </label>
+      <label class="mel" aria-hidden="true">Não preencha<input type="text" name="site" tabindex="-1" autocomplete="off"></label>
+      <label class="consent inteiro"><input type="checkbox" name="consentimento" required> <span>Autorizo a publicação deste depoimento com o meu nome no site da escola.</span></label>
+      <button class="btn btn-sol" type="submit" id="dep-enviar">Enviar depoimento</button>
+      <div class="msg oculto" id="dep-msg" role="status" aria-live="polite"></div>
+    </form>
+  </div>
+</section>
+
 <section class="insta" id="instagram">
   <div class="wrap">
     <div>
@@ -680,12 +719,13 @@ a.logo-parc:hover{transform:translateY(-3px)}
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="comum.js?v=12"></script>
+<script src="comum.js?v=13"></script>
 <script>
 (function(){
   const { padrao, mesclar, esc, linkWhats, COL } = CEA;
   const COL_LOGOS = COL.logos || "site-logos";
   const COL_CV = COL.curriculos || "site-curriculos";
+  const COL_DEP = COL.depoimentos || "site-depoimentos";
   const $ = s => document.querySelector(s), $$ = s => document.querySelectorAll(s);
   const pegar = (o, caminho) => caminho.split(".").reduce((a, k) => a == null ? a : a[k], o);
   const CACHE = "cea-site-conteudo";
@@ -846,6 +886,13 @@ a.logo-parc:hover{transform:translateY(-3px)}
     $("#videos").classList.toggle("oculto", !mostraVd);
     $$('[data-sec="videos"]').forEach(a => a.classList.toggle("oculto", !mostraVd));
 
+    // depoimentos: textos
+    const dp = c.depoimentos || padrao.depoimentos || {};
+    $("#dep-titulo").textContent = dp.titulo || "O que dizem as famílias";
+    $("#dep-intro").textContent = dp.intro || "";
+    $("#dep-chamada").textContent = dp.chamada || "";
+    $("#depoimentos").classList.toggle("oculto", c.secoes.depoimentos === false);
+
     $("#lista-historia").innerHTML = c.historia.itens.map(h =>
       `<li><span class="ano">${esc(h.marca)}</span><div><h3>${esc(h.titulo)}</h3><p>${esc(h.texto)}</p></div></li>`).join("");
 
@@ -940,6 +987,18 @@ a.logo-parc:hover{transform:translateY(-3px)}
       aplicar(mesclar(padrao, salvo));
     }).catch(e => console.warn("Conteúdo do site não carregado:", e.message));
 
+    // depoimentos aprovados
+    db.collection(COL_DEP).where("aprovado", "==", true).get().then(snap => {
+      const lista = snap.docs.map(d => d.data())
+        .sort((a, b) => ((b.aprovadoEm && b.aprovadoEm.seconds) || 0) - ((a.aprovadoEm && a.aprovadoEm.seconds) || 0))
+        .slice(0, 12);
+      $("#lista-depos").innerHTML = lista.map(d => `
+        <figure class="depo">
+          <blockquote>${esc(d.texto)}</blockquote>
+          <figcaption><b>${esc(d.nome)}</b>${d.vinculo ? `<span>${esc(d.vinculo)}</span>` : ""}</figcaption>
+        </figure>`).join("");
+    }).catch(e => console.warn("Depoimentos não carregados:", e.message));
+
     // logos dos parceiros
     db.collection(COL_LOGOS).orderBy("ordem").get().then(snap => {
       const logos = snap.docs.map(d => d.data()).filter(l => l.visivel !== false && /^data:image\//.test(l.img || ""));
@@ -1008,6 +1067,46 @@ a.logo-parc:hover{transform:translateY(-3px)}
     if (!a || !a.dataset.zap || ehCelular) return; // no celular, segue o link normal
     e.preventDefault();
     window.open(a.href, "_blank", "noopener");
+  });
+
+  // Depoimentos: abrir formulário, limitar a 7 linhas e enviar para aprovação
+  const formDep = $("#form-dep"), taDep = formDep.elements.texto;
+  $("#dep-abrir").addEventListener("click", () => {
+    const abrir = formDep.classList.contains("oculto");
+    formDep.classList.toggle("oculto", !abrir);
+    $("#dep-abrir").setAttribute("aria-expanded", String(abrir));
+    if (abrir) formDep.elements.nome.focus();
+  });
+  const linhasDep = t => t.split(/\r?\n/).length;
+  taDep.addEventListener("input", () => {
+    let t = taDep.value;
+    if (linhasDep(t) > 7) { t = t.split(/\r?\n/).slice(0, 7).join("\n"); taDep.value = t; }
+    $("#dep-cont").textContent = `${linhasDep(t)} de 7 linhas · ${t.length} de 600 caracteres`;
+  });
+  const msgDep = m => { const el = $("#dep-msg"); el.textContent = m.texto; el.className = "msg " + m.tipo; };
+  formDep.addEventListener("submit", async e => {
+    e.preventDefault();
+    const f = formDep.elements;
+    if (f.site.value) { msgDep({ tipo: "ok", texto: "Recebemos seu depoimento! Obrigado." }); formDep.reset(); return; }
+    const nome = f.nome.value.trim(), vinculo = f.vinculo.value.trim(), texto = f.texto.value.trim();
+    if (nome.length < 2) return msgDep({ tipo: "erro", texto: "Digite seu nome." });
+    if (texto.length < 10) return msgDep({ tipo: "erro", texto: "Escreva um pouco mais sobre a sua experiência." });
+    if (linhasDep(texto) > 7) return msgDep({ tipo: "erro", texto: "O depoimento pode ter no máximo 7 linhas." });
+    if (!f.consentimento.checked) return msgDep({ tipo: "erro", texto: "Marque a autorização para publicarmos seu depoimento." });
+    if (!db) return msgDep({ tipo: "erro", texto: "Não foi possível enviar agora. Tente mais tarde." });
+    const bt = $("#dep-enviar"); bt.disabled = true; bt.textContent = "Enviando…";
+    try {
+      await db.collection(COL_DEP).add({
+        nome: nome.slice(0, 60), vinculo: vinculo.slice(0, 60), texto: texto.slice(0, 600),
+        consentimento: true, aprovado: false, criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      formDep.reset(); $("#dep-cont").textContent = "Até 7 linhas.";
+      msgDep({ tipo: "ok", texto: "Recebemos seu depoimento! Ele aparecerá no site após a aprovação da escola. Obrigado!" });
+    } catch (err) {
+      msgDep({ tipo: "erro", texto: "Não foi possível enviar agora. Tente de novo em alguns minutos." });
+      console.warn(err);
+    }
+    bt.disabled = false; bt.textContent = "Enviar depoimento";
   });
 
   // Envio de currículo

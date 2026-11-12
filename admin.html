@@ -187,12 +187,13 @@ textarea{min-height:96px;resize:vertical}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="comum.js?v=12"></script>
+<script src="comum.js?v=13"></script>
 <script>
 (function(){
 const { padrao, mesclar, esc, COL } = CEA;
 const COL_LOGOS = COL.logos || "site-logos";
 const COL_CV = COL.curriculos || "site-curriculos";
+const COL_DEP = COL.depoimentos || "site-depoimentos";
 const db = CEA.iniciarFirebase();
 if (!db) {
   document.body.innerHTML = '<div class="login"><form><h1>Falta configurar o Firebase</h1><p>Abra o arquivo comum.js e cole a configuração do projeto Firebase do site no lugar de "COLE_AQUI".</p></form></div>';
@@ -302,6 +303,11 @@ const ABAS = [
       { k:"destaque", r:"Destaque (cartão amarelo)", t:"check" }
     ]}
   ]},
+  { id:"depoimentos", nome:"Depoimentos", desc:"Depoimentos enviados pelas famílias. Só aparecem no site depois que você aprovar.", campos:[
+    { k:"depoimentos.titulo", r:"Título da seção" },
+    { k:"depoimentos.intro", r:"Texto de introdução", t:"textarea" },
+    { k:"depoimentos.chamada", r:"Frase acima do botão “Deixar meu depoimento”" }
+  ]},
   { id:"trabalhe", nome:"Trabalhe conosco", desc:"Textos do formulário e os currículos recebidos. Só quem está na lista de editores consegue ver os currículos.", campos:[
     { k:"trabalhe.titulo", r:"Título da seção" },
     { k:"trabalhe.intro", r:"Texto de introdução", t:"textarea" },
@@ -329,6 +335,7 @@ const ABAS = [
     { k:"secoes.links", r:"Links úteis", t:"check" },
     { k:"secoes.trabalhe", r:"Trabalhe conosco", t:"check" },
     { k:"secoes.videos", r:"Vídeos", t:"check" },
+    { k:"secoes.depoimentos", r:"Depoimentos das famílias", t:"check" },
     { k:"cores.verde", r:"Cor principal", t:"cor" },
     { k:"cores.sol", r:"Cor de destaque", t:"cor" }
   ]}
@@ -412,6 +419,7 @@ function mostrar(id){
   aba.campos.forEach(c => p.appendChild(criarCampo(c, dados, c.k)));
   if (id === "logos") montarLogos(p);
   if (id === "trabalhe") montarCurriculos(p);
+  if (id === "depoimentos") montarDepoimentos(p);
 }
 
 let seq = 0;
@@ -797,6 +805,60 @@ document.addEventListener("click", async e => {
     try { await db.collection(COL_CV).doc(v.id).delete(); cvs = cvs.filter(x => x.id !== v.id); desenharCvs(); aviso("Currículo excluído."); }
     catch(err){ aviso("Não foi possível excluir: " + err.message); }
   }
+});
+/* ---------- Depoimentos (moderação) ---------- */
+let deps = [];
+async function montarDepoimentos(p){
+  p.insertAdjacentHTML("beforeend", `<h2 style="font-size:1.3rem;margin:26px 0 6px">Depoimentos recebidos</h2>
+    <p class="desc" style="color:var(--suave);margin:0 0 14px">Os que aguardam aprovação aparecem primeiro. Aprovados vão para o site na hora.</p>
+    <div id="lista-dep"><p class="vazio">Carregando…</p></div>`);
+  try {
+    const snap = await db.collection(COL_DEP).get();
+    deps = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch(e){ $("#lista-dep").innerHTML = `<p class="msg erro">Não consegui carregar: ${esc(e.code === "permission-denied" ? "atualize as regras do Firestore" : e.message)}</p>`; return; }
+  desenharDeps();
+}
+function desenharDeps(){
+  const box = $("#lista-dep"); if (!box) return;
+  if (!deps.length) { box.innerHTML = `<p class="vazio">Nenhum depoimento recebido ainda.</p>`; return; }
+  const seg = x => (x && x.seconds) || 0;
+  deps.sort((a, b) => (a.aprovado === b.aprovado ? seg(b.criadoEm) - seg(a.criadoEm) : (a.aprovado ? 1 : -1)));
+  box.innerHTML = deps.map(d => {
+    const data = d.criadoEm && d.criadoEm.toDate ? d.criadoEm.toDate().toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" }) : "";
+    const selo = d.aprovado
+      ? '<span style="font-size:.75rem;background:var(--verde);color:#fff;padding:2px 8px;border-radius:999px;vertical-align:middle">NO SITE</span>'
+      : '<span style="font-size:.75rem;background:#9A6700;color:#fff;padding:2px 8px;border-radius:999px;vertical-align:middle">AGUARDANDO</span>';
+    return `<div class="item dep-item" data-id="${d.id}" style="${d.aprovado ? "" : "border-color:#9A6700"}">
+      <div class="item-topo"><b>${esc(d.nome)} ${selo}</b><span style="color:var(--suave);font-size:.88rem">${esc(data)}</span></div>
+      ${d.vinculo ? `<p style="margin:0 0 8px;color:var(--suave)">${esc(d.vinculo)}</p>` : ""}
+      <div style="white-space:pre-line;margin-bottom:14px;padding:12px;background:var(--cartao);border-radius:10px;border:1px solid var(--linha)">${esc(d.texto)}</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+        ${d.aprovado
+          ? '<button class="btn btn-pequeno" type="button" data-dep-ocultar>Tirar do site</button>'
+          : '<button class="btn btn-pequeno btn-primario" type="button" data-dep-aprovar>Aprovar e publicar</button>'}
+        <button class="btn btn-pequeno btn-perigo" type="button" data-dep-x style="margin-left:auto">Excluir</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+document.addEventListener("click", async e => {
+  const card = e.target.closest(".dep-item"); if (!card) return;
+  const d = deps.find(x => x.id === card.dataset.id); if (!d) return;
+  try {
+    if (e.target.closest("[data-dep-aprovar]")) {
+      await db.collection(COL_DEP).doc(d.id).update({ aprovado: true, aprovadoEm: firebase.firestore.FieldValue.serverTimestamp() });
+      d.aprovado = true; desenharDeps(); aviso("Depoimento publicado no site.");
+    }
+    if (e.target.closest("[data-dep-ocultar]")) {
+      await db.collection(COL_DEP).doc(d.id).update({ aprovado: false });
+      d.aprovado = false; desenharDeps(); aviso("Depoimento retirado do site.");
+    }
+    if (e.target.closest("[data-dep-x]")) {
+      if (!confirm(`Excluir o depoimento de ${d.nome}? Isso não pode ser desfeito.`)) return;
+      await db.collection(COL_DEP).doc(d.id).delete();
+      deps = deps.filter(x => x.id !== d.id); desenharDeps(); aviso("Depoimento excluído.");
+    }
+  } catch(err){ aviso("Não foi possível salvar: " + err.message); }
 });
 })();
 </script>

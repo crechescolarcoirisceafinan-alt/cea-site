@@ -24,6 +24,7 @@ window.CEA = (function () {
     fotosFull: "site-fotos-full",  // foto em tamanho grande (aberta ao clicar)
     logos: "site-logos",           // logos dos parceiros (rodapé)
     curriculos: "site-curriculos", // currículos enviados pelo "Trabalhe conosco"
+    depoimentos: "site-depoimentos", // depoimentos das famílias (com aprovação)
     editores: "site-editores"      // 1 doc por e-mail autorizado a editar (criado no console)
   };
 
@@ -106,6 +107,11 @@ window.CEA = (function () {
       intro: "Quer fazer parte da equipe da Arco-Íris? Preencha seus dados e cole o seu currículo abaixo.",
       cargos: ["Professor(a)", "Auxiliar de classe", "Berçarista", "Estagiário(a)", "Serviços gerais", "Outro"]
     },
+    depoimentos: {
+      titulo: "O que dizem as famílias",
+      intro: "Depoimentos de pais e responsáveis que fazem parte da Arco-Íris.",
+      chamada: "Sua família faz parte da Arco-Íris? Conte como é a experiência."
+    },
     historia: {
       titulo: "Tudo começou com uma placa na porta",
       placa: "CUIDA-SE DE CRIANÇAS",
@@ -141,7 +147,7 @@ window.CEA = (function () {
       posicao: "faixa"      // faixa | destaque | topo | ambos
     },
     secoes: {
-      etapas: true, parceiros: true, historia: true, galeria: true, familias: true, instagram: true, contato: true, logos: true, extras: true, links: true, trabalhe: true, videos: true
+      etapas: true, parceiros: true, historia: true, galeria: true, familias: true, instagram: true, contato: true, logos: true, extras: true, links: true, trabalhe: true, videos: true, depoimentos: true
     },
     cores: {
       verde: "#0E6B30",

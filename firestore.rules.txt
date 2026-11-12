@@ -47,6 +47,20 @@ service cloud.firestore {
 
     // Lista de editores: cada pessoa só vê o próprio registro.
     // Inclusões e exclusões são feitas pelo console do Firebase.
+    // Depoimentos: qualquer visitante pode ENVIAR (aguardando aprovação);
+    // o público só lê os aprovados; editores aprovam, ocultam e apagam
+    match /site-depoimentos/{id} {
+      allow create: if request.resource.data.keys().hasOnly(['nome','vinculo','texto','consentimento','aprovado','criadoEm'])
+        && request.resource.data.nome is string && request.resource.data.nome.size() >= 2 && request.resource.data.nome.size() <= 60
+        && request.resource.data.vinculo is string && request.resource.data.vinculo.size() <= 60
+        && request.resource.data.texto is string && request.resource.data.texto.size() >= 10 && request.resource.data.texto.size() <= 600
+        && request.resource.data.consentimento == true
+        && request.resource.data.aprovado == false
+        && request.resource.data.criadoEm == request.time;
+      allow read: if resource.data.aprovado == true || ehEditorDoSite();
+      allow update, delete: if ehEditorDoSite();
+    }
+
     match /site-editores/{email} {
       allow read: if request.auth != null && request.auth.token.email.lower() == email;
       allow write: if false;
