@@ -105,7 +105,8 @@ window.CEA = (function () {
     trabalhe: {
       titulo: "Trabalhe conosco",
       intro: "Quer fazer parte da equipe da Arco-Íris? Preencha seus dados e cole o seu currículo abaixo.",
-      cargos: ["Professor(a)", "Auxiliar de classe", "Berçarista", "Estagiário(a)", "Serviços gerais", "Outro"]
+      cargos: ["Professor(a)", "Auxiliar de classe", "Berçarista", "Estagiário(a)", "Serviços gerais", "Outro"],
+      coordWhats: ""
     },
     depoimentos: {
       titulo: "O que dizem as famílias",

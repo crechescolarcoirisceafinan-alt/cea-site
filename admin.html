@@ -311,7 +311,8 @@ const ABAS = [
   { id:"trabalhe", nome:"Trabalhe conosco", desc:"Textos do formulário e os currículos recebidos. Só quem está na lista de editores consegue ver os currículos.", campos:[
     { k:"trabalhe.titulo", r:"Título da seção" },
     { k:"trabalhe.intro", r:"Texto de introdução", t:"textarea" },
-    { k:"trabalhe.cargos", r:"Vagas que aparecem na lista", t:"lista", a:"Separe por vírgula. Ex.: Professor(a), Auxiliar de classe, Berçarista" }
+    { k:"trabalhe.cargos", r:"Vagas que aparecem na lista", t:"lista", a:"Separe por vírgula. Ex.: Professor(a), Auxiliar de classe, Berçarista" },
+    { k:"trabalhe.coordWhats", r:"WhatsApp da coordenação (só números)", a:"Com 55 e DDD. Ex.: 5571999999999. Usado no botão “Enviar para a coordenação” de cada currículo. Não aparece no site." }
   ]},
   { id:"aviso", nome:"Aviso", desc:"Uma faixa no topo do site para recados importantes.", campos:[
     { k:"aviso.ativo", r:"Mostrar aviso no site", t:"check" },
@@ -777,8 +778,11 @@ function desenharCvs(){
       </div>
       <p style="margin:0 0 10px"><strong>${esc(v.cargo || "Vaga não informada")}</strong> ·
         <a href="https://wa.me/${tel}" target="_blank" rel="noopener">${esc(v.telefone)}</a>${v.email ? ` · <a href="mailto:${esc(v.email)}">${esc(v.email)}</a>` : ""}</p>
+      ${v.encaminhadoEm ? `<p style="margin:0 0 10px;color:var(--verde);font-weight:700;font-size:.9rem">✓ Enviado à coordenação em ${esc(new Date(v.encaminhadoEm).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" }))}</p>` : ""}
       ${v.texto ? `<details style="margin-bottom:12px"><summary style="cursor:pointer;font-weight:700">Ver currículo</summary><div style="white-space:pre-wrap;margin-top:8px;padding:12px;background:var(--cartao);border-radius:10px;border:1px solid var(--linha)">${esc(v.texto)}</div></details>` : ""}
       <div class="linha" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+        <button class="btn btn-pequeno btn-primario" type="button" data-cv-coord>Enviar para a coordenação</button>
+        ${v.pdf ? `<button class="btn btn-pequeno" type="button" data-cv-share>Compartilhar PDF</button>` : ""}
         ${v.pdf ? `<button class="btn btn-pequeno" type="button" data-cv-pdf>Baixar PDF</button>` : ""}
         <button class="btn btn-pequeno" type="button" data-cv-lido>${v.lido ? "Marcar como novo" : "Marcar como visto"}</button>
         <button class="btn btn-pequeno btn-perigo" type="button" data-cv-x style="margin-left:auto">Excluir</button>
@@ -789,6 +793,45 @@ function desenharCvs(){
 document.addEventListener("click", async e => {
   const card = e.target.closest(".cv-item"); if (!card) return;
   const v = cvs.find(x => x.id === card.dataset.id); if (!v) return;
+  const nomeArq = () => (v.pdfNome || ("curriculo-" + v.nome)).replace(/[\\/:*?"<>|]/g, "") + (/\.pdf$/i.test(v.pdfNome || "") ? "" : ".pdf");
+  const marcarEnviado = async () => {
+    try {
+      v.encaminhadoEm = new Date().toISOString(); v.lido = true;
+      await db.collection(COL_CV).doc(v.id).update({ encaminhadoEm: v.encaminhadoEm, lido: true });
+      desenharCvs();
+    } catch(err){ /* não impede o envio */ }
+  };
+  if (e.target.closest("[data-cv-coord]")) {
+    let n = String((dados.trabalhe && dados.trabalhe.coordWhats) || "").replace(/\D/g, "");
+    if (n.length === 10 || n.length === 11) n = "55" + n;
+    if (n.length < 12) return aviso("Cadastre o WhatsApp da coordenação no campo acima e clique em Salvar alterações.");
+    const data = v.criadoEm && v.criadoEm.toDate ? v.criadoEm.toDate().toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" }) : "";
+    let texto = String(v.texto || "").trim();
+    if (texto.length > 1800) texto = texto.slice(0, 1800) + "… (continua no painel)";
+    const msg = [
+      "*Novo currículo recebido pelo site*\n",
+      "*Nome:* " + v.nome,
+      "*Vaga:* " + (v.cargo || "Não informada"),
+      "*WhatsApp:* " + (v.telefone || "-"),
+      v.email ? "*E-mail:* " + v.email : "",
+      data ? "*Recebido em:* " + data : "",
+      v.pdf ? "_O candidato anexou um PDF; envio em seguida._" : "",
+      texto ? "\n*Currículo:*\n" + texto : ""
+    ].filter(Boolean).join("\n");
+    window.open("https://wa.me/" + n + "?text=" + encodeURIComponent(msg), "_blank", "noopener");
+    marcarEnviado();
+  }
+  if (e.target.closest("[data-cv-share]")) {
+    if (!/^data:application\/pdf;base64,/.test(v.pdf || "")) return aviso("Arquivo inválido.");
+    const blob = await (await fetch(v.pdf)).blob();
+    const arq = new File([blob], nomeArq(), { type: "application/pdf" });
+    if (navigator.canShare && navigator.canShare({ files: [arq] })) {
+      try { await navigator.share({ files: [arq], title: "Currículo de " + v.nome, text: "Currículo de " + v.nome + " (" + (v.cargo || "vaga não informada") + ")" }); marcarEnviado(); }
+      catch(err){ if (err.name !== "AbortError") aviso("Não foi possível compartilhar: " + err.message); }
+    } else {
+      aviso("Este navegador não compartilha arquivos. Use Baixar PDF e anexe no WhatsApp.");
+    }
+  }
   if (e.target.closest("[data-cv-pdf]")) {
     if (!/^data:application\/pdf;base64,/.test(v.pdf || "")) return aviso("Arquivo inválido.");
     const blob = await (await fetch(v.pdf)).blob();
