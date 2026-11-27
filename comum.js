@@ -25,6 +25,7 @@ window.CEA = (function () {
     logos: "site-logos",           // logos dos parceiros (rodapé)
     curriculos: "site-curriculos", // currículos enviados pelo "Trabalhe conosco"
     depoimentos: "site-depoimentos", // depoimentos das famílias (com aprovação)
+    acessos: "site-acessos",       // contador de visitas (1 doc por dia)
     editores: "site-editores"      // 1 doc por e-mail autorizado a editar (criado no console)
   };
 

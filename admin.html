@@ -113,6 +113,35 @@ textarea{min-height:96px;resize:vertical}
 .logo-previa{background:#FFFFFF;aspect-ratio:16/9;display:grid;place-items:center;padding:14px;border-bottom:1px solid var(--linha)}
 .logo-previa img{max-width:100%;max-height:100%;object-fit:contain;aspect-ratio:auto}
 .logo-item.escondida .logo-previa img{opacity:.4}
+/* Acessos */
+.ac-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:26px}
+.ac-card{background:var(--fundo);border:1px solid var(--linha);border-radius:14px;padding:16px 18px}
+.ac-card b{display:block;font-family:var(--display);font-size:2rem;line-height:1.1;color:var(--verde);font-variant-numeric:tabular-nums}
+.ac-card span{color:var(--suave);font-size:.9rem;font-weight:700}
+.ac-card small{display:block;color:var(--suave);font-size:.8rem;margin-top:2px}
+@media (max-width:760px){.ac-cards{grid-template-columns:1fr 1fr}}
+.ac-bloco{margin-bottom:28px}
+.ac-bloco h3{font-size:1.1rem;margin-bottom:4px}
+.ac-bloco > p{margin:0 0 12px;color:var(--suave);font-size:.9rem}
+.ac-grafico{position:relative;display:flex;align-items:flex-end;gap:2px;height:170px;padding-top:8px;border-bottom:1px solid var(--linha)}
+.ac-dia{flex:1;height:100%;display:flex;align-items:flex-end;cursor:default;position:relative;min-width:0}
+.ac-dia i{display:block;width:100%;background:var(--verde);border-radius:4px 4px 0 0;min-height:2px;opacity:.85}
+.ac-dia.zero i{background:var(--linha);opacity:1}
+.ac-dia:hover i,.ac-dia:focus-visible i{opacity:1;outline:2px solid var(--sol);outline-offset:1px}
+.ac-eixo{display:flex;justify-content:space-between;color:var(--suave);font-size:.78rem;margin-top:6px}
+.ac-dica{position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--tinta);color:var(--fundo);font-size:.8rem;font-weight:700;padding:5px 9px;border-radius:8px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .1s;z-index:2}
+.ac-dia:hover .ac-dica,.ac-dia:focus-visible .ac-dica{opacity:1}
+.ac-linhas{display:flex;flex-direction:column;gap:10px}
+.ac-linha{display:grid;grid-template-columns:170px 1fr 110px;gap:12px;align-items:center;font-size:.95rem}
+.ac-linha .barra-f{height:12px;background:var(--fundo);border-radius:4px;overflow:hidden}
+.ac-linha .barra-f i{display:block;height:100%;background:var(--verde);border-radius:4px}
+.ac-linha .n{text-align:right;font-variant-numeric:tabular-nums;font-weight:700}
+.ac-linha .n small{color:var(--suave);font-weight:600}
+@media (max-width:560px){.ac-linha{grid-template-columns:1fr 90px}.ac-linha .barra-f{grid-column:1 / -1;order:3}}
+.ac-periodo{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}
+.ac-periodo button[aria-pressed="true"]{background:var(--verde-claro);border-color:var(--verde);color:var(--verde)}
+.ac-dica-link{background:var(--verde-claro);border-radius:12px;padding:14px 16px;font-size:.92rem}
+.ac-dica-link code{background:var(--cartao);padding:2px 6px;border-radius:6px;font-size:.88rem;word-break:break-all}
 .vazio{color:var(--suave);text-align:center;padding:24px}
 
 /* Barra de salvar */
@@ -187,13 +216,14 @@ textarea{min-height:96px;resize:vertical}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="comum.js?v=13"></script>
+<script src="comum.js?v=14"></script>
 <script>
 (function(){
 const { padrao, mesclar, esc, COL } = CEA;
 const COL_LOGOS = COL.logos || "site-logos";
 const COL_CV = COL.curriculos || "site-curriculos";
 const COL_DEP = COL.depoimentos || "site-depoimentos";
+const COL_AC = COL.acessos || "site-acessos";
 const db = CEA.iniciarFirebase();
 if (!db) {
   document.body.innerHTML = '<div class="login"><form><h1>Falta configurar o Firebase</h1><p>Abra o arquivo comum.js e cole a configuração do projeto Firebase do site no lugar de "COLE_AQUI".</p></form></div>';
@@ -204,6 +234,7 @@ const $ = s => document.querySelector(s);
 
 /* ---------- Estrutura dos formulários ---------- */
 const ABAS = [
+  { id:"acessos", nome:"Acessos", desc:"Visitas ao site, de onde as pessoas vieram e quantas tocaram nos botões. Cada aparelho conta 1 vez por dia. Os seus acessos neste aparelho não entram na conta.", campos:[] },
   { id:"geral", nome:"Geral", desc:"Nome, lema e logo da escola.", campos:[
     { k:"escola.nome", r:"Nome completo da escola" },
     { k:"escola.nomeCurto", r:"Nome curto", a:"Aparece no topo do site, ao lado do logo." },
@@ -390,6 +421,7 @@ auth.onAuthStateChanged(async user => {
     $("#tela-sem-permissao").classList.remove("oculto"); return;
   }
   $("#quem").textContent = email;
+  try { localStorage.setItem("cea-nao-contar", "1"); } catch(e) {}
   $("#tela-painel").classList.remove("oculto");
   await carregar();
 });
@@ -421,6 +453,7 @@ function mostrar(id){
   if (id === "logos") montarLogos(p);
   if (id === "trabalhe") montarCurriculos(p);
   if (id === "depoimentos") montarDepoimentos(p);
+  if (id === "acessos") montarAcessos(p);
 }
 
 let seq = 0;
@@ -902,6 +935,101 @@ document.addEventListener("click", async e => {
       deps = deps.filter(x => x.id !== d.id); desenharDeps(); aviso("Depoimento excluído.");
     }
   } catch(err){ aviso("Não foi possível salvar: " + err.message); }
+});
+/* ---------- Acessos ---------- */
+let acDias = [], acPeriodo = 30;
+const ROT_ORIGEM = { o_instagram:"Instagram", o_whatsapp:"WhatsApp", o_google:"Google", o_facebook:"Facebook", o_direto:"Digitou o endereço / favorito", o_outros:"Outros sites" };
+const ROT_CLIQUE = { c_whatsapp:"Tocaram no WhatsApp", c_matricula:"Abriram a pré-matrícula", c_classapp:"Abriram o ClassApp", c_isaac:"Abriram o Isaac" };
+const fmt = n => Number(n || 0).toLocaleString("pt-BR");
+const diaStr = d => d.toLocaleDateString("sv-SE", { timeZone: "America/Bahia" });
+const diaBR = s => { const [y, m, d] = s.split("-"); return `${d}/${m}`; };
+async function montarAcessos(p){
+  p.insertAdjacentHTML("beforeend", `<div id="ac-area"><p class="vazio">Carregando…</p></div>`);
+  try {
+    const snap = await db.collection(COL_AC).get();
+    acDias = snap.docs.map(d => ({ dia: d.id, ...d.data() })).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d.dia)).sort((x, y) => x.dia < y.dia ? -1 : 1);
+  } catch(e){
+    $("#ac-area").innerHTML = `<p class="msg erro">Não consegui carregar: ${esc(e.code === "permission-denied" ? "publique as regras novas do Firestore (bloco site-acessos)" : e.message)}</p>`;
+    return;
+  }
+  desenharAcessos();
+}
+function somar(lista, campo){ return lista.reduce((t, d) => t + (Number(d[campo]) || 0), 0); }
+function desenharAcessos(){
+  const box = $("#ac-area"); if (!box) return;
+  const hoje = new Date(), hojeS = diaStr(hoje);
+  const porDia = Object.fromEntries(acDias.map(d => [d.dia, d]));
+  const diasAtras = n => { const d = new Date(hoje); d.setDate(d.getDate() - n); return diaStr(d); };
+  const inicioMes = hojeS.slice(0, 8) + "01";
+  const entre = (de) => acDias.filter(d => d.dia >= de && d.dia <= hojeS);
+  const vHoje = (porDia[hojeS] && porDia[hojeS].visitas) || 0;
+  const v7 = somar(entre(diasAtras(6)), "visitas");
+  const vMes = somar(entre(inicioMes), "visitas");
+  const vTotal = somar(acDias, "visitas");
+  const desde = acDias.length ? diaBR(acDias[0].dia) + "/" + acDias[0].dia.slice(0, 4) : "";
+
+  // período escolhido para origem, aparelho e cliques
+  const periodo = acPeriodo === 0 ? acDias : entre(diasAtras(acPeriodo - 1));
+  const vPer = somar(periodo, "visitas");
+  const linhas = (rotulos, base) => {
+    const itens = Object.entries(rotulos).map(([k, r]) => ({ r, n: somar(periodo, k) })).sort((x, y) => y.n - x.n);
+    const max = Math.max(1, ...itens.map(i => i.n));
+    return itens.map(i => `<div class="ac-linha"><span>${esc(i.r)}</span>
+      <span class="barra-f" aria-hidden="true"><i style="width:${(i.n / max * 100).toFixed(1)}%"></i></span>
+      <span class="n">${fmt(i.n)} <small>${base ? Math.round(i.n / base * 100) : 0}%</small></span></div>`).join("");
+  };
+
+  // gráfico dos últimos 30 dias
+  const serie = []; for (let i = 29; i >= 0; i--) { const s = diasAtras(i); serie.push({ s, n: (porDia[s] && porDia[s].visitas) || 0 }); }
+  const maxS = Math.max(1, ...serie.map(x => x.n));
+  const sem = ["dom","seg","ter","qua","qui","sex","sáb"];
+  const grafico = serie.map(x => {
+    const dSem = sem[new Date(x.s + "T12:00:00").getDay()];
+    return `<span class="ac-dia${x.n ? "" : " zero"}" tabindex="0" aria-label="${dSem} ${diaBR(x.s)}: ${x.n} visitas">
+      <i style="height:${x.n ? Math.max(3, x.n / maxS * 100) : 1.5}%"></i>
+      <span class="ac-dica">${dSem} ${diaBR(x.s)} · ${fmt(x.n)} ${x.n === 1 ? "visita" : "visitas"}</span></span>`;
+  }).join("");
+
+  const pBtn = (n, r) => `<button class="btn btn-pequeno" type="button" data-ac-per="${n}" aria-pressed="${acPeriodo === n}">${r}</button>`;
+  const site = /^https:/.test(location.origin) ? location.origin : "https://cea-matricula-site.web.app";
+  box.innerHTML = `
+    <div class="ac-cards">
+      <div class="ac-card"><span>Hoje</span><b>${fmt(vHoje)}</b></div>
+      <div class="ac-card"><span>Últimos 7 dias</span><b>${fmt(v7)}</b></div>
+      <div class="ac-card"><span>Este mês</span><b>${fmt(vMes)}</b></div>
+      <div class="ac-card"><span>Total</span><b>${fmt(vTotal)}</b>${desde ? `<small>desde ${desde}</small>` : ""}</div>
+    </div>
+    ${vTotal === 0 ? `<p class="msg ok" style="margin-bottom:24px">Ainda não há visitas registradas. Elas começam a aparecer assim que alguém abrir o site (os seus acessos deste aparelho não contam).</p>` : ""}
+    <div class="ac-bloco">
+      <h3>Visitas por dia</h3>
+      <p>Últimos 30 dias. Passe o dedo ou o mouse sobre as barras para ver cada dia.</p>
+      <div class="ac-grafico" role="img" aria-label="Visitas por dia nos últimos 30 dias">${grafico}</div>
+      <div class="ac-eixo"><span>${diaBR(serie[0].s)}</span><span>maior dia: ${fmt(maxS === 1 && !serie.some(x => x.n) ? 0 : maxS)}</span><span>hoje</span></div>
+    </div>
+    <div class="ac-periodo" role="group" aria-label="Período">${pBtn(7, "7 dias")}${pBtn(30, "30 dias")}${pBtn(90, "90 dias")}${pBtn(0, "Tudo")}</div>
+    <div class="ac-bloco">
+      <h3>Interesse</h3>
+      <p>Pessoas que tocaram nos botões, em relação às ${fmt(vPer)} visitas do período.</p>
+      <div class="ac-linhas">${linhas(ROT_CLIQUE, vPer)}</div>
+    </div>
+    <div class="ac-bloco">
+      <h3>De onde vieram</h3>
+      <p>Quem chega por um link sem identificação aparece como “Digitou o endereço”. Veja a dica abaixo.</p>
+      <div class="ac-linhas">${linhas(ROT_ORIGEM, vPer)}</div>
+    </div>
+    <div class="ac-bloco">
+      <h3>Aparelho</h3>
+      <div class="ac-linhas">${linhas({ celular: "Celular", computador: "Computador" }, vPer)}</div>
+    </div>
+    <div class="ac-dica-link">
+      <b>Dica para saber a origem certinha:</b> use estes links ao divulgar o site.<br>
+      Bio e posts do Instagram: <code>${esc(site)}/?origem=instagram</code><br>
+      WhatsApp (status, listas, mensagem automática): <code>${esc(site)}/?origem=whatsapp</code>
+    </div>`;
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-ac-per]"); if (!b) return;
+  acPeriodo = Number(b.dataset.acPer); desenharAcessos();
 });
 })();
 </script>

@@ -719,13 +719,14 @@ a.logo-parc:hover{transform:translateY(-3px)}
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="comum.js?v=13"></script>
+<script src="comum.js?v=14"></script>
 <script>
 (function(){
   const { padrao, mesclar, esc, linkWhats, COL } = CEA;
   const COL_LOGOS = COL.logos || "site-logos";
   const COL_CV = COL.curriculos || "site-curriculos";
   const COL_DEP = COL.depoimentos || "site-depoimentos";
+  const COL_AC = COL.acessos || "site-acessos";
   const $ = s => document.querySelector(s), $$ = s => document.querySelectorAll(s);
   const pegar = (o, caminho) => caminho.split(".").reduce((a, k) => a == null ? a : a[k], o);
   const CACHE = "cea-site-conteudo";
@@ -1173,6 +1174,48 @@ a.logo-parc:hover{transform:translateY(-3px)}
     bt.setAttribute("aria-pressed", String(ligar));
     bt.textContent = ligar ? "🔇 Desativar som" : "🔊 Ativar som";
   });
+
+  // Contador de acessos: 1 visita por aparelho por dia, sem cookies e sem dados pessoais.
+  // Não conta robôs nem o aparelho de quem já entrou no painel.
+  (function contarAcessos(){
+    if (!db || navigator.webdriver || !/^https:/.test(location.protocol)) return;
+    let ls = null; try { ls = window.localStorage; ls.getItem("x"); } catch(e) { ls = null; }
+    try { if (ls && ls.getItem("cea-nao-contar") === "1") return; } catch(e) {}
+    const hoje = new Date().toLocaleDateString("sv-SE", { timeZone: "America/Bahia" });
+    const ref = db.collection(COL_AC).doc(hoje);
+    const mais1 = firebase.firestore.FieldValue.increment(1);
+    const jaContou = k => { try { return ls && ls.getItem(k) === hoje; } catch(e) { return false; } };
+    const marcar = k => { try { ls && ls.setItem(k, hoje); } catch(e) {} };
+
+    if (!jaContou("cea-visita")) {
+      const ua = navigator.userAgent, ref0 = document.referrer || "";
+      const q = new URLSearchParams(location.search);
+      const marca = (q.get("origem") || q.get("utm_source") || "").toLowerCase();
+      let origem = "o_outros";
+      if (/insta/.test(marca) || /Instagram/i.test(ua) || /instagram\.com/i.test(ref0)) origem = "o_instagram";
+      else if (/whats|wa/.test(marca) || /whatsapp/i.test(ref0)) origem = "o_whatsapp";
+      else if (/face|fb/.test(marca) || /FBAN|FBAV/i.test(ua) || /facebook\.com|fb\.com/i.test(ref0)) origem = "o_facebook";
+      else if (/google/.test(marca) || /google\./i.test(ref0)) origem = "o_google";
+      else if (!marca && (!ref0 || ref0.indexOf(location.origin) === 0)) origem = "o_direto";
+      const aparelho = /Mobi|Android|iPhone|iPad|iPod/i.test(ua) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(ua)) ? "celular" : "computador";
+      ref.set({ visitas: mais1, [aparelho]: mais1, [origem]: mais1 }, { merge: true })
+        .then(() => marcar("cea-visita"))
+        .catch(e => console.warn("Contador:", e.message));
+    }
+
+    // cliques que mostram interesse (conta 1 por aparelho por dia, por tipo)
+    document.addEventListener("click", e => {
+      const a = e.target.closest("a"); if (!a) return;
+      let campo = "";
+      if (a.classList.contains("js-matricula")) campo = "c_matricula";
+      else if (a.classList.contains("js-classapp")) campo = "c_classapp";
+      else if (a.classList.contains("js-isaac")) campo = "c_isaac";
+      else if (a.dataset.zap || /wa\.me|whatsapp/.test(a.href)) campo = "c_whatsapp";
+      if (!campo || jaContou("cea-" + campo)) return;
+      marcar("cea-" + campo);
+      ref.set({ [campo]: mais1 }, { merge: true }).catch(() => {});
+    }, true);
+  })();
 
   // menu no celular
   const botao = $(".abrir-menu"), menu = $("#menu");
